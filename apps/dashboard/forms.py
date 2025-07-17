@@ -4,7 +4,11 @@ from apps.accounts.models import Customer
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
-        fields = ['name', 'mobile', 'address', 'email', 'status']
+        fields = ['customer_id', 'name', 'email', 'mobile', 'address', 'status']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-select'}),
+            'address': forms.Textarea(attrs={'rows': 2}),
+        }
 
 class AdminLoginForm(forms.Form):
     email = forms.EmailField(label="Email", max_length=255)

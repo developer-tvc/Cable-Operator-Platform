@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'apps.payments.apps.PaymentsConfig',
     'apps.plans.apps.PlansConfig',
     'apps.subscriptions.apps.SubscriptionsConfig',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [

@@ -1,5 +1,5 @@
 from django.shortcuts import redirect, render
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
@@ -25,57 +25,35 @@ class AdminLoginView(View):
             user = authenticate(request, email=email, password=password)
             if user is not None:
                 login(request, user)
+                request.session['just_logged_in'] = True
                 return redirect('dashboard:admin_dashboard')
             else:
                 messages.error(request, 'Invalid email or password.')
         return render(request, self.template_name, {'form': form})
-# # Admin Dashboard
-# class AdminDashboardView(LoginRequiredMixin, TemplateView):
-#     login_url = 'dashboard:admin_login'
-#     template_name = 'admin_login.html'
-#
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context['total_customers'] = Customer.objects.count()
-#         context['active_customers'] = Customer.objects.filter(status='active').count()
-#         return context
-#
-# # Customer List
-# class CustomerListView(LoginRequiredMixin, ListView):
-#     login_url = 'dashboard:admin_login'
-#     model = Customer
-#     template_name = 'customer_detail.html'
-#     context_object_name = 'customers'
-#
-# # Customer Create
-# class CustomerCreateView(LoginRequiredMixin, CreateView):
-#     login_url = 'dashboard:admin_login'
-#     model = Customer
-#     form_class = CustomerForm
-#     template_name = 'customer_add.html'
-#     success_url = reverse_lazy('dashboard:customer_list')
-#
-# # Customer Update
-# class CustomerUpdateView(LoginRequiredMixin, UpdateView):
-#     login_url = 'dashboard:admin_login'
-#     model = Customer
-#     form_class = CustomerForm
-#     template_name = 'customer_edit.html'
-#     success_url = reverse_lazy('dashboard:customer_list')
-#
-# # Customer Delete
-# class CustomerDeleteView(LoginRequiredMixin, DeleteView):
-#     login_url = 'dashboard:admin_login'
-#     model = Customer
-#     success_url = reverse_lazy('dashboard:customer_list')
-#     template_name = 'customer_delete.html'
-#
-# # Customer Status Toggle
-# class CustomerToggleStatusView(LoginRequiredMixin, View):
-#     login_url = 'dashboard:admin_login'
-#
-#     def get(self, request, pk):
-#         customer = Customer.objects.get(pk=pk)
-#         customer.status = 'inactive' if customer.status == 'active' else 'active'
-#         customer.save()
-#         return redirect('dashboard:customer_list')
+    
+# Admin Logout View    
+class AdminLogoutView(View):
+    def get(self, request):
+        logout(request)
+        return redirect('dashboard:admin_login')
+
+# Admin Dashboard View    
+class AdminDashboardView(LoginRequiredMixin, View):
+    login_url = reverse_lazy('dashboard:admin_login')
+
+    def get(self, request):
+        form = CustomerForm()
+        welcome = request.session.pop('just_logged_in', False)
+        return render(request, 'dashboard/dashboard.html', {'form': form, 'welcome': welcome})
+
+    
+# Create Customer    
+class CreateCustomerView(View):
+    def post(self, request):
+        form = CustomerForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Customer created successfully.")
+        else:
+            messages.error(request, "Failed to create customer. Please fix the errors.")
+        return redirect('dashboard:admin_dashboard')
