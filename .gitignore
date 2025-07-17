@@ -1,0 +1,42 @@
+# Byte-compiled / cache files
+*.py[cod]
+__pycache__/
+.mypy_cache/
+*.swp
+
+# Logs
+*.log
+
+# SQLite database
+*.sqlite3
+db.sqlite3
+
+# Environment variables
+.env
+.env/
+
+# Virtual environments
+venv/
+.venv/
+
+# OS-specific files
+.DS_Store
+
+# IDE/editor folders
+.idea/
+.vscode/
+
+# Django migrations (exclude everything except __init__.py)
+**/migrations/*.py
+!**/migrations/__init__.py
+
+# Compiled translation files
+*.mo
+*.pot
+
+# Packaging
+*.egg-info/
+
+# Media/static (if needed)
+# media/
+# staticfiles/
