@@ -8,7 +8,7 @@
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto">
         <li class="nav-item"><a class="nav-link" href=""><b>Dashboard</b></b></a></li>
-        <li class="nav-item"><a class="nav-link" href=""><b>Customer Management</b></a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'dashboard:customer_list' %}"><b>Customer Management</b></a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'create_plan' %}"><b>Plan Management</b></a></li>
         <li class="nav-item"><a class="nav-link" href=""><b>QR Codes</b></a></li>
       </ul>

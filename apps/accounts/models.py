@@ -43,13 +43,22 @@ class Customer(models.Model):
         ('active', 'Active'),
         ('inactive', 'Inactive'),
     ]
+
     customer_id = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=100)
     email = models.EmailField(blank=True, null=True)
     mobile = models.CharField(max_length=15, unique=True)
     address = models.TextField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
         return f"{self.name} ({self.customer_id})"
+
+    def soft_delete(self):
+        self.is_deleted = True
+        self.status = 'inactive'
+        self.save()
+
 
