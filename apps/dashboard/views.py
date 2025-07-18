@@ -6,6 +6,8 @@ from django.views import View
 from django.views.generic import TemplateView, ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from apps.accounts.models import AdminUser, Customer
+from django.views.decorators.http import require_POST
+from django.utils.decorators import method_decorator
 from .forms import CustomerForm
 from .forms import AdminLoginForm
 
@@ -46,14 +48,53 @@ class AdminDashboardView(LoginRequiredMixin, View):
         welcome = request.session.pop('just_logged_in', False)
         return render(request, 'dashboard/dashboard.html', {'form': form, 'welcome': welcome})
 
-    
-# Create Customer    
-class CreateCustomerView(View):
+class CustomerListView(LoginRequiredMixin, ListView):
+    model = Customer
+    template_name = 'dashboard/customer_list.html'
+    context_object_name = 'customers'
+
+    def get_queryset(self):
+        # Only show customers that are not soft-deleted
+        return Customer.objects.filter(is_deleted=False)
+      
+
+# Create Customer View
+class CreateCustomerView(LoginRequiredMixin, View):
+    login_url = reverse_lazy('dashboard:admin_login')
+    template_name = 'dashboard/customer_form.html'
+
+    def get(self, request):
+        form = CustomerForm()
+        return render(request, self.template_name, {'form': form})
+
     def post(self, request):
         form = CustomerForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, "Customer created successfully.")
+            return redirect('dashboard:customer_list')
         else:
             messages.error(request, "Failed to create customer. Please fix the errors.")
-        return redirect('dashboard:admin_dashboard')
+        return render(request, self.template_name, {'form': form})
+
+    
+# Update Customer View
+class UpdateCustomerView(LoginRequiredMixin, UpdateView):
+    model = Customer
+    form_class = CustomerForm
+    template_name = 'dashboard/customer_form.html'
+    success_url = reverse_lazy('dashboard:customer_list')
+
+# Delete Customer View
+class DeleteCustomerView(LoginRequiredMixin, DeleteView):
+    login_url = reverse_lazy('dashboard:admin_login')
+
+    @method_decorator(require_POST)
+    def post(self, request, pk):
+        customer = Customer.objects.filter(pk=pk, is_deleted=False).first()
+        if customer:
+            customer.soft_delete()
+            messages.success(request, "Customer deleted successfully.")
+        else:
+            messages.error(request, "Customer not found or already deleted.")
+        return redirect('dashboard:customer_list')

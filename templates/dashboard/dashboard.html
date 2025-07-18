@@ -4,78 +4,16 @@
 {% block content %}
 <div class="container py-5">
 
-	<!-- Header with title and actions -->
-	<div class="d-flex justify-content-between align-items-center mb-4">
-		<h1 class="fw-bold">Admin Dashboard</h1>
-		<div>
-			<!-- Create Customer Button -->
-			<button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#createCustomerModal">
-				Create Customer
-			</button>
-		</div>
-	</div>
+  <!-- Header with title and actions -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="fw-bold">Admin Dashboard</h1>
+  </div>
 
-	<!-- Welcome Alert -->
-	{% if welcome %}
-		<div class="alert alert-info text-center">
-			Welcome to the Cable Operator Admin Panel.
-		</div>
-	{% endif %}
-
-	<!-- Success/Error Messages -->
-	{% if messages %}
-		<div class="mt-3">
-			{% for message in messages %}
-				<div class="alert alert-{{ message.tags }} alert-dismissible fade show text-center" role="alert">
-					{{ message }}
-					<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-				</div>
-			{% endfor %}
-		</div>
-	{% endif %}
-
-	<!-- Create Customer Modal -->
-	<div class="modal fade" id="createCustomerModal" tabindex="-1" aria-labelledby="createCustomerModalLabel" aria-hidden="true">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<form id="customerForm" method="post" action="{% url 'dashboard:create_customer' %}" novalidate>
-					{% csrf_token %}
-					<div class="modal-header">
-						<h5 class="modal-title" id="createCustomerModalLabel">Create Customer</h5>
-						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-					</div>
-
-					<div class="modal-body">
-						{% for field in form %}
-							<div class="mb-3">
-								<label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-								{{ field|add_class:"form-control" }}
-								{% if field.errors %}
-									<div class="text-danger small">{{ field.errors.0 }}</div>
-								{% endif %}
-							</div>
-						{% endfor %}
-					</div>
-
-					<div class="text-center mb-2">
-						<button type="submit" class="btn btn-success px-4">Create</button>
-					</div>
-				</form>
-			</div>
-		</div>
-	</div>
-
+  <!-- Welcome Alert -->
+  {% if welcome %}
+  <div class="alert alert-info text-center">
+    Welcome to the Cable Operator Admin Panel.
+  </div>
 </div>
-
-<!-- Client-side Bootstrap validation -->
-<script>
-	const form = document.getElementById('customerForm');
-	form.addEventListener('submit', function (event) {
-		if (!form.checkValidity()) {
-			event.preventDefault();
-			event.stopPropagation();
-		}
-		form.classList.add('was-validated');
-	});
-</script>
+{% endif %}
 {% endblock %}

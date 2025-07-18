@@ -6,8 +6,12 @@ class CustomerForm(forms.ModelForm):
         model = Customer
         fields = ['customer_id', 'name', 'email', 'mobile', 'address', 'status']
         widgets = {
+            'customer_id': forms.TextInput(attrs={'class': 'form-control'}),
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'mobile': forms.TextInput(attrs={'class': 'form-control'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'status': forms.Select(attrs={'class': 'form-select'}),
-            'address': forms.Textarea(attrs={'rows': 2}),
         }
 
 class AdminLoginForm(forms.Form):
