@@ -37,28 +37,37 @@ class AdminUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
-
 class Customer(models.Model):
     STATUS_CHOICES = [
         ('active', 'Active'),
         ('inactive', 'Inactive'),
     ]
 
-    customer_id = models.CharField(max_length=50, unique=True)
+    customer_id = models.CharField(max_length=10, unique=True, editable=False)
     name = models.CharField(max_length=100)
     email = models.EmailField(blank=True, null=True)
     mobile = models.CharField(max_length=15, unique=True)
     address = models.TextField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
-    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.name} ({self.customer_id})"
 
     def soft_delete(self):
-        self.is_deleted = True
         self.status = 'inactive'
         self.save()
 
-
+    def save(self, *args, **kwargs):
+        if not self.customer_id:
+            last_customer = Customer.objects.order_by('-id').first()
+            if last_customer and last_customer.customer_id:
+                try:
+                    last_id = int(last_customer.customer_id[1:])
+                    new_id = f"C{last_id + 1:04d}"
+                except ValueError:
+                    new_id = "C0001"
+            else:
+                new_id = "C0001"
+            self.customer_id = new_id
+        super().save(*args, **kwargs)

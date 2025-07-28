@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'apps.plans.apps.PlansConfig',
     'apps.subscriptions.apps.SubscriptionsConfig',
     'widget_tweaks',
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
@@ -54,6 +55,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+]
+INTERNAL_IPS = [
+    '127.0.0.1',
 ]
 
 ROOT_URLCONF = 'cable_operator.urls'
@@ -124,7 +129,8 @@ USE_L10N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
+# Static files (css, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]

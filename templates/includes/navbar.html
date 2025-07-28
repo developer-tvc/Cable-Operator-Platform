@@ -1,20 +1,36 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="#">Admin Panel</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
 
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav me-auto">
-        <li class="nav-item"><a class="nav-link" href=""><b>Dashboard</b></b></a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'dashboard:customer_list' %}"><b>Customer Management</b></a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'create_plan' %}"><b>Plan Management</b></a></li>
-        <li class="nav-item"><a class="nav-link" href=""><b>QR Codes</b></a></li>
-      </ul>
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href=""><b>Login</b></a></li>
-      </ul>
-    </div>
-  </div>
-</nav>
+<nav class="navbar navbar-expand-sm bg-white p-3 mb-3">
+        <div class="container-fluid">
+            <div>
+                <a href="http://" class="text-black navbar-brand fw-bold text-decoration-none logo-font">Cable operators
+                    - Admin Panel</a>
+                <p class="text-secondary mb-0">Monitor and manage your cable network operations</p>
+            </div>
+
+            <button type="button" class="navbar-toggler ms-auto" data-bs-toggle="collapse" data-bs-target="#navbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbar">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a href="{% url 'dashboard:admin_dashboard' %}" class="nav-link">Dashboard</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="{% url 'dashboard:customer_list' %}" class="nav-link active-text" >Customer Management</a>
+                    </li>
+
+
+                    <li class="nav-item">
+                        <a href="{% url 'create_plan' %}" class="nav-link">Plan Management</a>
+                    </li>
+
+
+                    <li class="nav-item">
+                        <a href="http://" class="nav-link"><i class="fa-solid fa-arrow-right-from-bracket"></i>
+                            Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
