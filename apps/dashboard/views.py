@@ -1,3 +1,7 @@
+from django.db.models import Count, Q
+from datetime import date, timedelta
+from calendar import monthrange
+from django.utils.timezone import now
 from django.shortcuts import redirect, render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -6,6 +10,7 @@ from django.views import View
 from django.views.generic import TemplateView, ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from apps.accounts.models import AdminUser, Customer
+from apps.payments.models import Payment
 from django.views.decorators.http import require_POST
 from django.utils.decorators import method_decorator
 from .forms import CustomerForm
@@ -39,23 +44,62 @@ class AdminLogoutView(View):
         logout(request)
         return redirect('dashboard:admin_login')
 
-# Admin Dashboard View    
 class AdminDashboardView(LoginRequiredMixin, View):
     login_url = reverse_lazy('dashboard:admin_login')
 
     def get(self, request):
         form = CustomerForm()
         welcome = request.session.pop('just_logged_in', False)
-        return render(request, 'dashboard/dashboard.html', {'form': form, 'welcome': welcome})
 
+        customer_counts = Customer.objects.aggregate(
+            total=Count('id'),
+            active=Count('id', filter=Q(status='active')),
+            inactive=Count('id', filter=Q(status='inactive'))
+        )
+
+        today = now().date()
+        tomorrow = today + timedelta(days=1)
+        last_day = monthrange(today.year, today.month)[1]
+        end_of_month = date(today.year, today.month, last_day)
+
+        paid_ids_upcoming = Payment.objects.filter(
+            status='success',
+            payment_for_month__range=(tomorrow, end_of_month)
+        ).values_list('customer_id', flat=True)
+
+        upcoming_dues_count = Customer.objects.filter(
+            status='active'
+        ).exclude(id__in=paid_ids_upcoming).count()
+
+
+        paid_customers_ids = Payment.objects.filter(
+            status='success',
+            payment_for_month__lte=today
+        ).values_list('customer_id', flat=True)
+
+        overdue_customers_count = Customer.objects.filter(
+            status='active'
+        ).exclude(id__in=paid_customers_ids).count()
+
+        return render(request, 'dashboard/dashboard.html', {
+            'form': form,
+            'welcome': welcome,
+            'total_customers': customer_counts['total'],
+            'active_customers': customer_counts['active'],
+            'inactive_customers': customer_counts['inactive'],
+            'overdue_customers': overdue_customers_count,
+            'upcoming_dues': upcoming_dues_count,
+        })
+
+    
+# Customer List View    
 class CustomerListView(LoginRequiredMixin, ListView):
     model = Customer
     template_name = 'dashboard/customer_list.html'
     context_object_name = 'customers'
 
     def get_queryset(self):
-        # Only show customers that are not soft-deleted
-        return Customer.objects.filter(is_deleted=False)
+        return Customer.objects.filter(status='active')
       
 
 # Create Customer View
@@ -91,10 +135,10 @@ class DeleteCustomerView(LoginRequiredMixin, DeleteView):
 
     @method_decorator(require_POST)
     def post(self, request, pk):
-        customer = Customer.objects.filter(pk=pk, is_deleted=False).first()
+        customer = Customer.objects.filter(pk=pk, status='active').first()
         if customer:
-            customer.soft_delete()
-            messages.success(request, "Customer deleted successfully.")
+            customer.deactivate()
+            messages.success(request, "Customer deactivated successfully.")
         else:
-            messages.error(request, "Customer not found or already deleted.")
+            messages.error(request, "Customer not found or already inactive.")
         return redirect('dashboard:customer_list')
