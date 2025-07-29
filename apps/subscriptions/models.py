@@ -3,7 +3,7 @@ from apps.accounts.models import Customer
 from apps.plans.models import Plan
 
 class Subscription(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='subscriptions')
     plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True)
     start_date = models.DateField()
     end_date = models.DateField()
