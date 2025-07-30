@@ -5,6 +5,7 @@ from apps.plans.models import Plan
 class Subscription(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='subscriptions')
     plan = models.ForeignKey(Plan, on_delete=models.SET_NULL, null=True)
+    revised_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, default=0)
     start_date = models.DateField()
     end_date = models.DateField()
     is_active = models.BooleanField(default=True)

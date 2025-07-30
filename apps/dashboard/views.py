@@ -28,7 +28,7 @@ from apps.dashboard.utils import generate_customer_qr
 
 # Admin Login View
 class AdminLoginView(View):
-    template_name = 'dashboard/admin_login.html'
+    template_name = 'dashboard/Login.html'
 
     def get(self, request):
         form = AdminLoginForm()
@@ -334,6 +334,33 @@ class CustomerListView(LoginRequiredMixin, CustomerDataMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        customer_data = []
+
+        for customer in context['customers']:
+            latest_sub = Subscription.objects.filter(customer=customer).order_by('-start_date').first()
+
+            plan_details = f"{latest_sub.plan.name} - ₹{latest_sub.plan.price}" if latest_sub and latest_sub.plan else "No Plan"
+            due_amount = latest_sub.plan.price if latest_sub and latest_sub.plan else 0
+            last_payment_date = customer.payments.filter(status='success').order_by('-payment_date').first()
+
+            last_payment = last_payment_date.payment_date if last_payment_date else "N/A"
+            base = Subscription.objects.filter(customer=customer, plan__plan_type='base').first()
+            addon = Subscription.objects.filter(customer=customer, plan__plan_type='add_on').first()
+
+            customer_data.append({
+                'id': customer.id,
+                'customer_id': customer.customer_id,
+                'name': customer.name,
+                'mobile': customer.mobile,
+                'status': customer.status,
+                'plan_details': plan_details,
+                'due_amount': due_amount,
+                'last_payment': last_payment,
+                'base_plan_id': base.plan.id if base and base.plan else '',
+                'add_on_plan_id': addon.plan.id if addon and addon.plan else '',
+            })
+
         context['form'] = CustomerForm()
         context['customers'] = self.get_enriched_customer_data(context['customers'])
         return context
@@ -362,30 +389,52 @@ class GPayRedirectView(View):
 
 class UpdateCustomerView(LoginRequiredMixin, View):
     login_url = reverse_lazy('dashboard:admin_login')
-    template_name = 'dashboard/Customer-Management1.html'
+    template_name = 'dashboard/Customer-Management.html'
 
     def get(self, request, pk):
         customer = get_object_or_404(Customer, pk=pk)
-        subscriptions = Subscription.objects.filter(customer=customer)
 
-        base = subscriptions.filter(plan__plan_type='base').first()
-        addon = subscriptions.filter(plan__plan_type='add_on').first()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            latest_sub = Subscription.objects.filter(customer=customer).order_by('-start_date').first()
+            due_amount = latest_sub.plan.price if latest_sub and latest_sub.plan else 0
+            revised_amount = latest_sub.revised_amount if latest_sub and hasattr(latest_sub, 'revised_amount') else 0
 
-        initial = {
-            'base_plan': base.plan if base else None,
-            'add_on_plan': addon.plan if addon else None,
-        }
+            # Base plan ID from the latest subscription if it's a base
+            base_plan_id = latest_sub.plan.id if latest_sub and latest_sub.plan.plan_type == 'base' else None
 
-        form = CustomerForm(instance=customer, initial=initial)
-        customers = Customer.objects.all()
+            # Add-on plans from the same start_date as latest_sub
+            addon_plan_ids = []
+            if latest_sub:
+                addon_plan_ids = list(
+                    Subscription.objects.filter(
+                        customer=customer,
+                        plan__plan_type='add_on',
+                        start_date=latest_sub.start_date
+                    ).values_list('plan_id', flat=True).distinct()
+                )
 
-        context = {
-            'form': form,
-            'customers': customers,
-            'edit_customer_id': customer.pk,
-        }
+            start_date = latest_sub.start_date if latest_sub else None
 
-        return render(request, self.template_name, context)
+            base_plans = list(Plan.objects.filter(plan_type='base').values('id', 'name', 'price'))
+            addon_plans = list(Plan.objects.filter(plan_type='add_on').values('id', 'name', 'price'))
+
+            data = {
+                'name': customer.name,
+                'mobile': customer.mobile,
+                'email': customer.email,
+                'address': customer.address,
+                'base_plan_id': base_plan_id,
+                'addon_plan_ids': addon_plan_ids,
+                'due_amount': str(due_amount),
+                'revised_amount': str(revised_amount),
+                'start_date': start_date.isoformat() if start_date else '',
+                'base_plans': base_plans,
+                'add_on_plans': addon_plans
+            }
+            return JsonResponse(data)
+
+        # For normal GET (non-AJAX)
+        return redirect('dashboard:customer_list')  # Not used in modal, safe redirect fallback
 
     def post(self, request, pk):
         customer = get_object_or_404(Customer, pk=pk)
@@ -393,44 +442,48 @@ class UpdateCustomerView(LoginRequiredMixin, View):
 
         if form.is_valid():
             customer = form.save()
-
-            base = form.cleaned_data.get('base_plan')
-            addon = form.cleaned_data.get('add_on_plan')
+            base_plan = form.cleaned_data.get('base_plan')
+            addon_plans = form.cleaned_data.get('add_on_plan')
             today = date.today()
 
-            # Delete existing subscriptions
-            Subscription.objects.filter(customer=customer, plan__plan_type='base').delete()
-            Subscription.objects.filter(customer=customer, plan__plan_type='add_on').delete()
+            # Clear existing subscriptions
+            Subscription.objects.filter(customer=customer).delete()
 
-            # Create updated subscriptions
-            if base:
+            # Create new subscriptions
+            if base_plan:
                 Subscription.objects.create(
                     customer=customer,
-                    plan=base,
+                    plan=base_plan,
                     start_date=today,
-                    end_date=today + timedelta(days=base.duration_days)
+                    end_date=today + timedelta(days=base_plan.duration_days)
                 )
-            if addon:
-                Subscription.objects.create(
-                    customer=customer,
-                    plan=addon,
-                    start_date=today,
-                    end_date=today + timedelta(days=addon.duration_days)
-                )
+
+            if addon_plans:
+                for addon_plan in addon_plans:
+                    Subscription.objects.create(
+                        customer=customer,
+                        plan=addon_plan,
+                        start_date=today,
+                        end_date=today + timedelta(days=addon_plan.duration_days)
+                    )
+
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Customer {customer.customer_id} updated successfully.'
+                })
 
             messages.success(request, f"Customer {customer.customer_id} updated successfully.")
             return redirect('dashboard:customer_list')
 
-        customers = Customer.objects.all()
-        messages.error(request, "Failed to update customer. Please fix the errors below.")
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': False,
+                'errors': form.errors
+            })
 
-        context = {
-            'form': form,
-            'customers': customers,
-            'edit_customer_id': customer.id,
-        }
-
-        return render(request, self.template_name, context)
+        messages.error(request, "Failed to update customer.")
+        return redirect('dashboard:customer_list')
 
 class CustomerDetailView(LoginRequiredMixin, View):
     template_name = 'dashboard/Customer-Detail.html'
@@ -452,7 +505,7 @@ class CustomerDetailView(LoginRequiredMixin, View):
         }
         return render(request, self.template_name, context)
 
-class DeleteCustomerView(LoginRequiredMixin, DeleteView):
+class DeleteCustomerView(LoginRequiredMixin, View):
     login_url = reverse_lazy('dashboard:admin_login')
 
     @method_decorator(require_POST)
@@ -464,3 +517,35 @@ class DeleteCustomerView(LoginRequiredMixin, DeleteView):
         else:
             messages.error(request, "Customer not found or already deleted.")
         return redirect('dashboard:customer_list')
+
+
+def customer_list(request):
+    search_query = request.GET.get('search')
+    plan_id = request.GET.get('plan')
+    status = request.GET.get('status')
+
+    customers = Customer.objects.all()
+
+    if search_query:
+        customers = customers.filter(
+            Q(name__icontains=search_query) |
+            Q(customer_id__icontains=search_query) |
+            Q(mobile__icontains=search_query)
+        )
+
+    if status:
+        customers = customers.filter(status=status)
+
+    if plan_id:
+        active_subs = Subscription.objects.filter(plan_id=plan_id, is_active=True)
+        customers = customers.filter(id__in=active_subs.values_list('customer_id', flat=True))
+
+    plans = Plan.objects.all()
+
+    context = {
+        'customers': customers,
+        'plans': plans,
+        'selected_plan': plan_id,
+        'selected_status': status,
+    }
+    return render(request, 'dashboard/Customer-Management.html', context)
