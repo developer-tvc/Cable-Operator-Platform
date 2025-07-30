@@ -1,8 +1,14 @@
+from django.db.models import Count, Q, Prefetch
+from datetime import date, timedelta
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
+from calendar import monthrange
+from django.utils.timezone import now
 from django.shortcuts import redirect, render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from datetime import date, timedelta
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from django.views.generic import ListView,DeleteView
@@ -11,6 +17,7 @@ from django.shortcuts import get_object_or_404
 from urllib.parse import quote_plus
 from django.utils.timezone import now
 from apps.accounts.models import Customer
+from apps.payments.models import Payment
 from django.views.decorators.http import require_POST
 from django.utils.decorators import method_decorator
 from .forms import CustomerForm
@@ -47,15 +54,184 @@ class AdminLogoutView(View):
         logout(request)
         return redirect('dashboard:admin_login')
 
-# Admin Dashboard View    
-class AdminDashboardView(LoginRequiredMixin, View):
+
+# MIXINS
+
+class CustomerSearchFilterMixin:
+    def apply_filters(self, request, queryset):
+        status_filter = request.GET.get('status')
+        plan_filter = request.GET.get('plan')
+        search_query = request.GET.get('search')
+
+        if status_filter in ['active', 'inactive']:
+            queryset = queryset.filter(status=status_filter)
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(name__icontains=search_query) |
+                Q(customer_id__icontains=search_query) |
+                Q(mobile__icontains=search_query)
+            )
+
+        return queryset, status_filter, plan_filter, search_query
+
+    def filter_by_latest_plan_type(self, customers, plan_type):
+        if plan_type not in ['base', 'add_on']:
+            return customers
+
+        return [
+            c for c in customers
+            if hasattr(c, 'latest_subscriptions') and
+               c.latest_subscriptions and
+               c.latest_subscriptions[0].plan and
+               c.latest_subscriptions[0].plan.plan_type == plan_type
+        ]
+
+
+class CustomerDataMixin:
+    def get_enriched_customer_data(self, customers):
+        customer_data = []
+
+        for customer in customers:
+            # Safely fallback if latest_subscriptions not present
+            subscriptions = getattr(customer, 'latest_subscriptions', customer.subscriptions.all())
+            latest_sub = next(iter(subscriptions), None)
+
+            plan_details = (
+                f"{latest_sub.plan.name} - ₹{latest_sub.plan.price}"
+                if latest_sub and latest_sub.plan else "No Plan"
+            )
+            due_amount = latest_sub.plan.price if latest_sub and latest_sub.plan else 0
+            last_payment = latest_sub.start_date if latest_sub else "N/A"
+
+            customer_data.append({
+                'id': customer.id,
+                'customer_id': customer.customer_id,
+                'name': customer.name,
+                'mobile': customer.mobile,
+                'status': customer.status,
+                'plan_details': plan_details,
+                'due_amount': due_amount,
+                'last_payment': last_payment,
+            })
+
+        return customer_data
+
+class ExcelExportMixin:
+    def export_as_excel(self, request, data, headers, filename='customers.xlsx'):
+        if request.GET.get('export') == 'xlsx':
+            wb = Workbook()
+            ws = wb.active
+            ws.title = "Customers"
+
+            # Write header
+            for col_num, header in enumerate(headers, 1):
+                col_letter = get_column_letter(col_num)
+                ws[f"{col_letter}1"] = header
+
+            # Write rows
+            for row_num, row_data in enumerate(data, 2):
+                for col_num, cell_value in enumerate(row_data, 1):
+                    col_letter = get_column_letter(col_num)
+                    ws[f"{col_letter}{row_num}"] = cell_value
+
+            response = HttpResponse(
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            wb.save(response)
+            return response
+        return None
+
+# Admin Dashboard View
+class AdminDashboardView(LoginRequiredMixin, CustomerSearchFilterMixin, CustomerDataMixin, ExcelExportMixin, View):
     login_url = reverse_lazy('dashboard:admin_login')
 
     def get(self, request):
         form = CustomerForm()
         welcome = request.session.pop('just_logged_in', False)
-        return render(request, 'dashboard/Dashboard.html', {'form': form, 'welcome': welcome})
 
+        sub_qs = Subscription.objects.select_related('plan').order_by('-start_date')
+        customers_qs = Customer.objects.prefetch_related(
+            Prefetch('subscriptions', queryset=sub_qs, to_attr='latest_subscriptions')
+        )
+
+        customers_qs, status_filter, plan_filter, search_query = self.apply_filters(request, customers_qs)
+        customers_qs = self.filter_by_latest_plan_type(customers_qs, plan_filter)
+        enriched_customers = self.get_enriched_customer_data(customers_qs)
+        excel_data = [
+            [
+                c['customer_id'],
+                c['name'],
+                c['mobile'],
+                c['status'],
+                c['plan_details'],
+                c['due_amount'],
+                c['last_payment']
+            ]
+            for c in enriched_customers
+        ]
+        excel_headers = ['Customer ID', 'Name', 'Mobile', 'Status', 'Plan', 'Due Amount', 'Last Payment']
+
+        excel_response = self.export_as_excel(request, excel_data, excel_headers)
+        if excel_response:
+            return excel_response
+
+
+        # Dates
+        today = now().date()
+        tomorrow = today + timedelta(days=1)
+        last_day = monthrange(today.year, today.month)[1]
+        end_of_month = date(today.year, today.month, last_day)
+
+        # Customers who paid successfully from tomorrow till end of month
+        paid_ids_upcoming = set(
+            Payment.objects.filter(
+                status='success',
+                payment_for_month__range=(tomorrow, end_of_month)
+            ).values_list('customer_id', flat=True)
+        )
+
+        # Customers who paid successfully today or earlier
+        paid_ids_current = set(
+            Payment.objects.filter(
+                status='success',
+                payment_for_month__lte=today
+            ).values_list('customer_id', flat=True)
+        )
+
+        # Upcoming dues: Active customers who haven't paid for upcoming months
+        upcoming_dues_count = Customer.objects.filter(
+            status='active'
+        ).exclude(id__in=paid_ids_upcoming).count()
+
+        # Overdue: Active customers who haven't paid until today (including today)
+        overdue_customers_count = Customer.objects.filter(
+            status='active'
+        ).exclude(id__in=paid_ids_current).count()
+
+        # Counts for summary
+        customer_counts = Customer.objects.aggregate(
+            total=Count('id'),
+            active=Count('id', filter=Q(status='active')),
+            inactive=Count('id', filter=Q(status='inactive'))
+        )
+
+        return render(request, 'dashboard/dashboard.html', {
+            'form': form,
+            'welcome': welcome,
+            'total_customers': customer_counts['total'],
+            'active_customers': customer_counts['active'],
+            'inactive_customers': customer_counts['inactive'],
+            'overdue_customers': overdue_customers_count,
+            'upcoming_dues': upcoming_dues_count,
+            'customers': enriched_customers,
+            'status': status_filter,
+            'plan': plan_filter,
+            'search': search_query,
+        })
+
+# Create Customer View
 class CreateCustomerView(LoginRequiredMixin, View):
     login_url = reverse_lazy('dashboard:admin_login')
     template_name = 'dashboard/Customer-Management.html'
@@ -151,34 +327,15 @@ class PlanInfoView(View):
             'due_date': due_date,
         })
 
-class CustomerListView(LoginRequiredMixin, ListView):
+class CustomerListView(LoginRequiredMixin, CustomerDataMixin, ListView):
     model = Customer
     template_name = 'dashboard/Customer-Management.html'
     context_object_name = 'customers'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        customer_data = []
-
-        for customer in context['customers']:
-            latest_sub = Subscription.objects.filter(customer=customer).order_by('-start_date').first()
-
-            plan_details = f"{latest_sub.plan.name} - ₹{latest_sub.plan.price}" if latest_sub and latest_sub.plan else "No Plan"
-            due_amount = latest_sub.plan.price if latest_sub and latest_sub.plan else 0
-            last_payment = latest_sub.start_date if latest_sub else "N/A"
-
-            customer_data.append({
-                'customer_id': customer.customer_id,
-                'name': customer.name,
-                'mobile': customer.mobile,
-                'status': customer.status,
-                'plan_details': plan_details,
-                'due_amount': due_amount,
-                'last_payment': last_payment,
-            })
-
         context['form'] = CustomerForm()
-        context['customers'] = customer_data
+        context['customers'] = self.get_enriched_customer_data(context['customers'])
         return context
 
 
