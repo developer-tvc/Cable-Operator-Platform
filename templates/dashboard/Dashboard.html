@@ -231,33 +231,7 @@
               </td>
               <td><span class="text-red">₹{{ customer.due_amount }}</span></td>
               <td>{{ customer.last_payment|date:"Y-m-d" }}</td>
-              <!-- <td> -->
-              <!-- <div class="d-flex justify-content-between"> -->
-              <!-- View Customer Detail -->
-              <!-- <a href="{% url 'dashboard:customer_detail' pk=customer.id %}" title="View"> -->
-              <!-- <i class="fa-regular fa-eye text-gray"></i> -->
-              <!-- </a> -->
-
-              <!-- Edit Customer -->
-              <!-- <a href="{% url 'dashboard:update_customer' pk=customer.id %}" title="Edit"> -->
-              <!-- <i class="fa-solid fa-pen-to-square text-blue" data-bs-toggle="modal" -->
-              <!-- data-bs-target="#EditUser"></i> -->
-              <!-- </a> -->
-
-              <!-- Delete Customer (only if active) -->
-              <!-- {% if customer.status == 'active' %} -->
-              <!-- <form method="post" action="{% url 'dashboard:delete_customer' pk=customer.id %}" -->
-              <!-- style="display:inline;"> -->
-              <!-- {% csrf_token %} -->
-              <!-- <button type="submit" style="border:none; background:none;" title="Delete"> -->
-              <!-- <i class="fa-solid fa-user-minus text-red"></i> -->
-              <!-- </button> -->
-              <!-- </form> -->
-              <!-- {% else %} -->
-              <!-- <i class="fa-solid fa-user-plus text-secondary" title="Reactivate (not implemented)"></i> -->
-              <!-- {% endif %} -->
-              <!-- </div> -->
-              <!-- </td> -->
+             
 
             </tr>
             {% endfor %}

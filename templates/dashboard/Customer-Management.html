@@ -434,14 +434,14 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="{% static 'js/main.js'%}?v=1.0.0"></script>
-    <script>
+    <!-- <script>
       const planPrices = {
         {% for plan in plans %}
           "{{ plan.id }}": {{ plan.price }},
         {% endfor %}
       };
 
-    </script>
+    </script> -->
 </body>
 
 </html>
