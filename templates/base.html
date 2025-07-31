@@ -2,41 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Cable Operator System{% endblock %}</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</head>
-    <style>
-        .system-title {
-            background-color: #f8f9fa;
-            padding: 10px 0;
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-            color: #000;
-        }
-        .footer {
-        position: relative;
-        bottom: 0;
-        width: 100%;
-        font-size: 14px;
-        color: #6c757d;
-    }
-    </style>
-</head>
-<body>
+    <title>Cable Operator System</title>
 
-<!--    <div class="system-title">-->
-<!--        Cable Operator Management System-->
-<!--    </div>-->
+    {% include "includes/header.html" %}
+</head>
 
+<body class="main-body">
     {% include "includes/navbar.html" %}
 
-    <div class="container mt-4">
-        {% block content %}{% endblock %}
-    </div>
+    {% block content %}{% endblock %}
 
     {% include "includes/footer.html" %}
-
+    {% block scripts %}
+      {% include 'includes/scripts.html' %}
+    {% endblock %}
 </body>
+
 </html>
+

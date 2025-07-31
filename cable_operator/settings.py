@@ -134,3 +134,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+ALLOWED_HOSTS = [
+    '127.0.0.1',        # localhost
+    'localhost',
+    '192.168.1.8',      # your local IP (from `ip addr`)
+]

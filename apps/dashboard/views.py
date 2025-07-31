@@ -28,7 +28,7 @@ from apps.dashboard.utils import generate_customer_qr
 
 # Admin Login View
 class AdminLoginView(View):
-    template_name = 'dashboard/Login.html'
+    template_name = 'accounts/Login.html'
 
     def get(self, request):
         form = AdminLoginForm()
@@ -53,7 +53,6 @@ class AdminLogoutView(View):
     def get(self, request):
         logout(request)
         return redirect('dashboard:admin_login')
-
 
 # MIXINS
 
@@ -379,13 +378,14 @@ class GPayRedirectView(View):
 
         upi_url = (
             f"upi://pay?"
-            f"pa="
+            f"pa=rahulm1819@okaxis"
             f"&pn={quote_plus('Cable Operator')}"
             f"&am={due_amount:.2f}"
             f"&cu=INR"
             f"&tn=Payment+for+{quote_plus(customer.name)}"
         )
-        return redirect(upi_url)
+
+        return render(request, "payments/payments.html", {"upi_url": upi_url})
 
 class UpdateCustomerView(LoginRequiredMixin, View):
     login_url = reverse_lazy('dashboard:admin_login')
@@ -501,7 +501,7 @@ class CustomerDetailView(LoginRequiredMixin, View):
             'add_ons': [sub.plan for sub in add_ons],
             'assigned_on': base_plan.start_date if base_plan else None,
             'due_date': base_plan.end_date if base_plan else None,
-            'due_amount': base_plan.plan.amount if base_plan else None,
+            'due_amount': base_plan.plan.price if base_plan else None,
         }
         return render(request, self.template_name, context)
 
