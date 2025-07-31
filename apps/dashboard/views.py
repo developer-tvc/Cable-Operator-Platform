@@ -1,9 +1,7 @@
 from django.db.models import Count, Q, Prefetch
-from datetime import date, timedelta
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from calendar import monthrange
-from django.utils.timezone import now
 from django.shortcuts import redirect, render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
@@ -368,7 +366,6 @@ ListView
 
         # ✅ Fix: set object_list so get_context_data works
         self.object_list = customers_qs
-
         context = self.get_context_data()
         context.update({
             'form': CustomerForm(),
@@ -378,9 +375,6 @@ ListView
             'search': search_query,
         })
         return self.render_to_response(context)
-
-
-
 
 class GPayRedirectView(View):
     def get(self, request, customer_id):

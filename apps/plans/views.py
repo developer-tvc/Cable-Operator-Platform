@@ -6,13 +6,13 @@ from django.db.models import Q
 from django.http import HttpResponse
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
-
 from .models import Plan
 from .forms import PlanForm
 from django.http import HttpResponse
 from django.views import View
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
+from django.shortcuts import get_object_or_404
 from django.conf import settings
 import os
 from apps.accounts.models import Customer
