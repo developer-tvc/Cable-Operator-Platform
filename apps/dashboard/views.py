@@ -378,7 +378,7 @@ class GPayRedirectView(View):
 
         upi_url = (
             f"upi://pay?"
-            f"pa=rahulm1819@okaxis"
+            f"pa="
             f"&pn={quote_plus('Cable Operator')}"
             f"&am={due_amount:.2f}"
             f"&cu=INR"
