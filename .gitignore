@@ -38,5 +38,5 @@ venv/
 *.egg-info/
 
 # Media/static (if needed)
-# media/
-# staticfiles/
+/staticfiles/
+/media/qr_codes/
