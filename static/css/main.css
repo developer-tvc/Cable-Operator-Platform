@@ -33,7 +33,7 @@
 }
 
 .active-text {
-  color: #0a84da;
+  color: #0a84da!important;
   font-weight: bold;
   text-decoration: underline;
 }
@@ -52,7 +52,7 @@
   color: #0ac993 !important;
 }
 .search-box {
-  width: 600px;
+  width: 480px;
   background: #eef2f4;
 }
 .btn-primary {
@@ -65,7 +65,6 @@
   color: #08ae7f;
   padding: 8px;
   border-radius: 20px;
-  font-size: 14px;
 }
 .inactive-badge {
   background-color: #fff2dd;
@@ -440,7 +439,6 @@ div.dt-container.dt-empty-footer tbody > tr:last-child > * {
 }
 
 /****Unsuccessfull Page*****/
-
 .common-issues {
   background-color: #ffeeee;
   border: 1px solid #fe4d2e;
@@ -465,9 +463,7 @@ div.dt-container.dt-empty-footer tbody > tr:last-child > * {
     font-size: 15px;
   }
 
-  .filter-date-section {
-    width: 100%;
-  }
+
   .logo-font {
     font-size: 16px;
   }
@@ -485,17 +481,25 @@ div.dt-container.dt-empty-footer tbody > tr:last-child > * {
   }
 }
 
-@media(max-width:650px){
-  .login-banner-section {
-   height: 400px;
+@media(max-width:767px){
+ .login-banner-section {
+   height: auto;
+ }
+
+ .login-mobile{
+  display: none;
  }
 
  .login-title h2 {
-    font-size: 2rem;
+    font-size: 1.5rem;
+    padding: 16px;
 }
 
 
 .login-right-section {
     padding: 32px;
-}
+ }
+ .filter-date-section {
+    width: 100%;
+  }
 }
