@@ -41,12 +41,11 @@
 
           <li class="nav-item">
             <a href="{% url 'dashboard:customer_list' %}" class="nav-link">Customer Management</a>
-            <!--                        <a href="http://" class="nav-link ">Customer Management</a>-->
           </li>
 
 
           <li class="nav-item">
-            <a href="http://" class="nav-link">Plan Management</a>
+            <a href="{% url 'plan:plan_management' %}" class="nav-link">Plan Management</a>
           </li>
 
 
@@ -214,7 +213,7 @@
             <tr>
               <td><span class="text-blue">{{ customer.customer_id }}</span></td>
               <td>{{ customer.name }}</td>
-              <td>+91 {{ customer.mobile }}</td>
+              <td>{{ customer.mobile }}</td>
               <td>
                 {% if customer.plan_details != "No Plan" %}
                 <span class="badge bg-white border text-gray">{{ customer.plan_details|safe }}</span>

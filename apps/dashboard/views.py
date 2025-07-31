@@ -55,8 +55,7 @@ class AdminLogoutView(View):
         return redirect('dashboard:admin_login')
 
 
-# MIXINS
-
+# Mixins
 class CustomerSearchFilterMixin:
     def apply_filters(self, request, queryset):
         status_filter = request.GET.get('status')
@@ -327,43 +326,61 @@ class PlanInfoView(View):
             'due_date': due_date,
         })
 
-class CustomerListView(LoginRequiredMixin, CustomerDataMixin, ListView):
+class CustomerListView(LoginRequiredMixin, CustomerSearchFilterMixin, CustomerDataMixin, ExcelExportMixin,
+ListView
+):
     model = Customer
     template_name = 'dashboard/Customer-Management.html'
     context_object_name = 'customers'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def get(self, request, *args, **kwargs):
+        # Base queryset
+        sub_qs = Subscription.objects.select_related('plan').order_by('-start_date')
+        customers_qs = Customer.objects.prefetch_related(
+            Prefetch('subscriptions', queryset=sub_qs, to_attr='latest_subscriptions')
+        )
 
-        customer_data = []
+        # Apply search & filters
+        customers_qs, status_filter, plan_filter, search_query = self.apply_filters(request, customers_qs)
+        customers_qs = self.filter_by_latest_plan_type(customers_qs, plan_filter)
 
-        for customer in context['customers']:
-            latest_sub = Subscription.objects.filter(customer=customer).order_by('-start_date').first()
+        # Enriched customer data
+        enriched_customers = self.get_enriched_customer_data(customers_qs)
 
-            plan_details = f"{latest_sub.plan.name} - ₹{latest_sub.plan.price}" if latest_sub and latest_sub.plan else "No Plan"
-            due_amount = latest_sub.plan.price if latest_sub and latest_sub.plan else 0
-            last_payment_date = customer.payments.filter(status='success').order_by('-payment_date').first()
+        # Export to .xlsx
+        if request.GET.get('export') == 'xlsx':
+            excel_data = [
+                [
+                    c['customer_id'],
+                    c['name'],
+                    c['mobile'],
+                    c['status'],
+                    c['plan_details'],
+                    c['due_amount'],
+                    c['last_payment'],
+                ]
+                for c in enriched_customers
+            ]
+            headers = [
+                'Customer ID', 'Name', 'Mobile', 'Status',
+                'Plan', 'Due Amount', 'Last Payment',
+            ]
+            return self.export_as_excel(request, excel_data, headers)
 
-            last_payment = last_payment_date.payment_date if last_payment_date else "N/A"
-            base = Subscription.objects.filter(customer=customer, plan__plan_type='base').first()
-            addon = Subscription.objects.filter(customer=customer, plan__plan_type='add_on').first()
+        # ✅ Fix: set object_list so get_context_data works
+        self.object_list = customers_qs
 
-            customer_data.append({
-                'id': customer.id,
-                'customer_id': customer.customer_id,
-                'name': customer.name,
-                'mobile': customer.mobile,
-                'status': customer.status,
-                'plan_details': plan_details,
-                'due_amount': due_amount,
-                'last_payment': last_payment,
-                'base_plan_id': base.plan.id if base and base.plan else '',
-                'add_on_plan_id': addon.plan.id if addon and addon.plan else '',
-            })
+        context = self.get_context_data()
+        context.update({
+            'form': CustomerForm(),
+            'customers': enriched_customers,
+            'status': status_filter,
+            'plan': plan_filter,
+            'search': search_query,
+        })
+        return self.render_to_response(context)
 
-        context['form'] = CustomerForm()
-        context['customers'] = self.get_enriched_customer_data(context['customers'])
-        return context
+
 
 
 class GPayRedirectView(View):

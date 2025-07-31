@@ -1,9 +1,16 @@
 from django.urls import path
-from . import views
+from .views import (
+    PlanListView,
+    PlanCreateView,
+    PlanUpdateView,
+    PlanDeleteView,
+)
+
+app_name = 'plan'
 
 urlpatterns = [
-    path('plans/', views.plan_list, name='plan_list'),
-    path('plans/create/', views.create_plan, name='create_plan'),
-    path('plans/update/<int:pk>/', views.update_plan, name='update_plan'),
-    path('plans/delete/<int:pk>/', views.delete_plan, name='delete_plan'),
+    path('plans/', PlanListView.as_view(), name='plan_management'),
+    path('plans/create/', PlanCreateView.as_view(), name='create_plan'),
+    path('plans/update/<int:pk>/', PlanUpdateView.as_view(), name='update_plan'),
+    path('plans/delete/<int:pk>/', PlanDeleteView.as_view(), name='delete_plan'),
 ]
