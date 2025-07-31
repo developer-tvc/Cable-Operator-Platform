@@ -13,7 +13,7 @@
             <div class="collapse navbar-collapse" id="navbar">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a href="{% url 'dashboard:admin_dashboard' %}" class="nav-link {% if request.path == '/dashboard/' %}active-text{% endif %}">Dashboard</a>
+                        <a href="{% url 'dashboard:admin_dashboard' %}" class="nav-link {% if request.path == '/dashboard/admin/' %}active-text{% endif %}">Dashboard</a>
                     </li>
 
                     <li class="nav-item">
@@ -22,7 +22,7 @@
 
 
                     <li class="nav-item">
-                        <a href="{% url 'plan_list' %}" class="nav-link {% if request.path == '/plans/plans/' %}active-text{% endif %}">Plan Management</a>
+                        <a href="{% url 'plan:plan_management' %}" class="nav-link {% if request.path == '/plans/plans/' %}active-text{% endif %}">Plan Management</a>
                     </li>
 
 
