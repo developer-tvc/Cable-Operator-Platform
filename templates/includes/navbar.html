@@ -1,4 +1,4 @@
-
+{% load static %}
 <nav class="navbar navbar-expand-sm bg-white p-3 mb-3">
         <div class="container-fluid">
             <div>
@@ -13,21 +13,21 @@
             <div class="collapse navbar-collapse" id="navbar">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a href="{% url 'dashboard:admin_dashboard' %}" class="nav-link">Dashboard</a>
+                        <a href="{% url 'dashboard:admin_dashboard' %}" class="nav-link {% if request.path == '/dashboard/' %}active-text{% endif %}">Dashboard</a>
                     </li>
 
                     <li class="nav-item">
-                        <a href="{% url 'dashboard:customer_list' %}" class="nav-link active-text" >Customer Management</a>
-                    </li>
-
-
-                    <li class="nav-item">
-                        <a href="{% url 'create_plan' %}" class="nav-link">Plan Management</a>
+                        <a href="{% url 'dashboard:customer_list' %}" class="nav-link {% if request.path == '/dashboard/customers/' %}active-text{% endif %}" >Customer Management</a>
                     </li>
 
 
                     <li class="nav-item">
-                        <a href="http://" class="nav-link"><i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        <a href="{% url 'plan_list' %}" class="nav-link {% if request.path == '/plans/plans/' %}active-text{% endif %}">Plan Management</a>
+                    </li>
+
+
+                    <li class="nav-item">
+                        <a href="{% url 'dashboard:logout' %}" class="nav-link "><i class="fa-solid fa-arrow-right-from-bracket"></i>
                             Logout</a>
                     </li>
                 </ul>
