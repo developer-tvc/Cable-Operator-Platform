@@ -48,6 +48,9 @@
 .text-red {
   color: #fe4d2e;
 }
+.text-success {
+  color: #0ac993 !important;
+}
 .search-box {
   width: 600px;
   background: #eef2f4;
@@ -62,6 +65,7 @@
   color: #08ae7f;
   padding: 8px;
   border-radius: 20px;
+  font-size: 14px;
 }
 .inactive-badge {
   background-color: #fff2dd;
@@ -85,9 +89,14 @@
   border-radius: 40px;
 }
 
-/* .btn-danger,.btn-success,.btn-secondary,.btn-primary {
+.btn-danger,
+.btn-success,
+.btn-secondary,
+.btn-primary,
+.btn-dark,
+.btn-white {
   border-radius: 40px;
-} */
+}
 
 .table-bordered {
   border: 1px solid #e6e6e6;
@@ -247,47 +256,32 @@ div.dt-container.dt-empty-footer tbody > tr:last-child > * {
   width: 50px;
 }
 
-.success-modal-round{
+.success-modal-round {
   background-color: #08ae7f;
-   border-radius: 50px;
-   padding: 10px;
-   text-align: center;
-   color: #FFF;
-   font-size: 30px;
-   width: 68px;
-  }
+  border-radius: 50px;
+  padding: 10px;
+  text-align: center;
+  color: #fff;
+  font-size: 30px;
+  width: 68px;
+}
 
-.danger-modal-round{
+.danger-modal-round {
   background-color: #fe4d2e;
-   border-radius: 50px;
-   padding: 10px;
-   text-align: center;
-   color: #FFF;
-   font-size: 30px;
-   width: 68px;
-  }
+  border-radius: 50px;
+  padding: 10px;
+  text-align: center;
+  color: #fff;
+  font-size: 30px;
+  width: 68px;
+}
 
-
-.okbtn{
+.okbtn {
   border-radius: 5px;
   width: 100px;
 }
 
-
 /****Login Page*****/
-
-.login-banner {
-  background: url("../Image/Login-banner.png");
-  width: 100%;
-  height: 400px;
-  background-position: center;
-  background-size: cover;
-  display: flex;
-  justify-content: center;
-  color: #fff;
-  align-items: center;
-  font-weight: bold;
-}
 
 .login-form {
   padding: 24px;
@@ -295,16 +289,167 @@ div.dt-container.dt-empty-footer tbody > tr:last-child > * {
   justify-content: center;
   align-items: center;
   margin-top: 100px;
-
 }
 
 .login-card {
   padding: 24px;
   border: 0px;
   border-top: 3px solid #0a84da;
-
+  width: 90%;
+  max-width: 500px;
 }
 
+.login-body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+}
+
+.login-right-section {
+  height: 100vh;
+  background-color: #0a84da;
+  display: flex;
+  background-image: url('../Image/login-bg.png');
+   position: relative;
+  justify-content: center;
+  align-items: center;
+  background-repeat: no-repeat;
+  background-position: bottom right;
+  background-size: 250px;
+  border-top-left-radius: 24px;
+}
+
+.login-title h2{
+  font-size: 3rem;
+}
+
+.login-banner-section {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+
+/****Payment Success Page*****/
+
+.payment-success-body {
+  background-color: #ddfff5;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.success-payment-card {
+  background-color: #0ac993;
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  color: #fff;
+  text-align: center;
+  position: relative;
+  max-width: 450px;
+  width: 90%;
+  margin: 0 auto;
+  margin-bottom: 50px;
+}
+
+.animated-pay-circle {
+  position: absolute;
+  top: -50px;
+  padding: 20px;
+  height: 100px;
+  border-radius: 100px;
+  background-color: #fff;
+  width: 100px;
+  height: 100px;
+  left: 0px;
+  right: 0px;
+  margin: 0 auto;
+}
+.success-content {
+  margin-top: 50px;
+}
+
+.success-img {
+  width: 50px;
+  height: 50px;
+}
+
+/****No Dues Page*****/
+.no-dues {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.no-due-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  max-width: 500px;
+  width: 90%;
+  border-bottom: 1px solid #dddddd;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+}
+.no-due-footer-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: flex-start;
+  max-width: 500px;
+  width: 90%;
+}
+
+.no-due-header-img {
+  width: 150px;
+  height: 150px;
+}
+
+.no-due-header-img img {
+  width: 150px;
+}
+.no-dues-content {
+  margin-bottom: 16px;
+}
+
+.amount-card,
+.plan-card,
+.due-card {
+  width: 100%;
+  background-color: #f6fafb;
+  padding: 16px;
+  border: 1px #f0f0f0;
+  margin-bottom: 16px;
+}
+
+.footer-button {
+  width: 100%;
+}
+
+.footer-button button {
+  width: 100%;
+}
+
+/****Unsuccessfull Page*****/
+
+.common-issues {
+  background-color: #ffeeee;
+  border: 1px solid #fe4d2e;
+  padding: 16px;
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+/****Media Query*****/
 @media (max-width: 900px) {
   .search-box {
     width: 100%;
@@ -326,9 +471,31 @@ div.dt-container.dt-empty-footer tbody > tr:last-child > * {
   .logo-font {
     font-size: 16px;
   }
-}
- @media(min-width:900px){
-  .login-card{
-      width: 30%;
+  .success-payment-card {
+    width: auto;
   }
+
+  .footer-button {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    z-index: 999;
+  }
+}
+
+@media(max-width:650px){
+  .login-banner-section {
+   height: 400px;
+ }
+
+ .login-title h2 {
+    font-size: 2rem;
+}
+
+
+.login-right-section {
+    padding: 32px;
+}
 }

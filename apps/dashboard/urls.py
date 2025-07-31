@@ -14,7 +14,7 @@ urlpatterns = [
     path('customers/create/', CreateCustomerView.as_view(), name='create_customer'),
     path('customer/edit/<int:pk>/', UpdateCustomerView.as_view(), name='edit_customer'),
     path('customers/<str:pk>/delete/', DeleteCustomerView.as_view(), name='delete_customer'),
-    path('customer/<int:pk>/', CustomerDetailView.as_view(), name='customer_detail'),
+    path('customer/detail/<int:pk>/', CustomerDetailView.as_view(), name='customer_detail'),
     path('customers/plan-info/',  PlanInfoView.as_view(),   name='plan_info'),
     path('pay/<str:customer_id>/', GPayRedirectView.as_view(), name='gpay_redirect'),
 
