@@ -2,237 +2,144 @@
 {% load static %}
 {% block title %}Customer Detail{% endblock %}
 {% block content %}
-<!--<<<<<<< HEAD-->
 
-<!--&lt;!&ndash;Main Section&ndash;&gt;-->
-<!--<div class="container-fluid mt-5">-->
-<!--    <div class="table-section p-3">-->
-<!--        <div class="d-flex justify-content-between mb-4 header-section">-->
-<!--            <h4 class="text-gray mb-3 title">Customer Management</h4>-->
-<!--            <div>-->
-<!--                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#createUser"><i-->
-<!--                        class="fa-solid fa-user-plus"></i> Create Customer</button>-->
-<!--            </div>-->
-
-<!--        </div>-->
-<!--        <div class="card border-0 p-4">-->
-<!--            <h5 class="text-gray mb-3">Customer Lists</h5>-->
-<!--            &lt;!&ndash;Filter Section&ndash;&gt;-->
-<!--            <div class="filter-section d-flex justify-content-between">-->
-<!--                <form method="get" class="search-filter">-->
-<!--                    <input type="text" name="search" placeholder="Search Customers By Name, ID or Phone"-->
-<!--                        class="form-control search-box" value="{{ search|default:'' }}" />-->
-<!--                </form>-->
-
-<!--                <div class="d-flex gap-2 align-items-center align-items-center">-->
-<!--                    <div class="export-btn">-->
-<!--                        <a href="?export=xlsx{% if status %}&status={{ status }}{% endif %}{% if plan %}&plan={{ plan }}{% endif %}{% if search %}&search={{ search }}{% endif %}"-->
-<!--                            class="btn btn-primary">-->
-<!--                            <i class="fa-solid fa-cloud-arrow-down"></i> Export-->
-<!--                        </a>-->
-<!--                    </div>-->
-
-<!--                    <div class="d-flex gap-2 align-items-center">-->
-<!--                        <i class="fa-solid fa-filter text-gray"></i>-->
-<!--                        <form method="get" class="d-inline">-->
-<!--                            <select name="plan" class="form-select bg-light-blue" onchange="this.form.submit()">-->
-<!--                                <option value="">Choose Plan</option>-->
-<!--                                <option value="base" {% if plan == "base" %}selected{% endif %}>Base Plan</option>-->
-<!--                                <option value="add_on" {% if plan == "add_on" %}selected{% endif %}>Add-On Plan-->
-<!--=======-->
-    <!--Main Section-->
-    <div class="container-fluid mt-5">
-        <div class="table-section p-3">
-            <div class="d-flex justify-content-between mb-4 header-section">
-                <h4 class="text-gray mb-3 title">Customer Management</h4>
-                <div>
-                    <button type="button" class="btn btn-secondary" data-bs-toggle="modal"
-                        data-bs-target="#createUser"><i class="fa-solid fa-user-plus"></i> Create Customer</button>
-                </div>
-
+<!--Main Section-->
+<div class="container-fluid mt-5">
+    <div class="table-section p-3">
+        <div class="d-flex justify-content-between mb-4 header-section">
+            <h4 class="text-gray mb-3 title">Customer Management</h4>
+            <div>
+                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#createUser"><i
+                        class="fa-solid fa-user-plus"></i> Create Customer</button>
             </div>
-            <div class="card border-0 p-4">
-                <h5 class="text-gray mb-3">Customer Lists</h5>
-                <!--Filter Section-->
-                <div class="filter-section d-flex justify-content-between">
-                    <form method="get" class="search-filter">
-                        <input type="text" name="search" placeholder="Search Customers By Name, ID or Phone"
-                            class="form-control search-box" value="{{ search|default:'' }}" />
-                    </form>
 
-                    <div class="d-flex gap-2 align-items-center align-items-center">
-                        <div class="export-btn">
-                            <a href="?export=xlsx{% if status %}&status={{ status }}{% endif %}{% if plan %}&plan={{ plan }}{% endif %}{% if search %}&search={{ search }}{% endif %}"
-                                class="btn btn-primary">
-                                <i class="fa-solid fa-cloud-arrow-down"></i> Export
-                            </a>
-                        </div>
+        </div>
+        <div class="card border-0 p-4">
+            <h5 class="text-gray mb-3">Customer Lists</h5>
+            <!--Filter Section-->
+            <div class="filter-section d-flex justify-content-between">
+                <form method="get" class="search-filter">
+                    <input type="text" name="search" placeholder="Search Customers By Name, ID or Phone"
+                        class="form-control search-box" value="{{ search|default:'' }}" />
+                </form>
 
-                        <div class="d-flex gap-2 align-items-center">
-                            <i class="fa-solid fa-filter text-gray"></i>
-                            <form method="get" class="d-inline">
-                                <select name="plan" class="form-select bg-light-blue" onchange="this.form.submit()">
-                                    <option value="">Choose Plan</option>
-                                    <option value="base" {% if plan == "base" %}selected{% endif %}>Base Plan</option>
-                                    <option value="add_on" {% if plan == "add_on" %}selected{% endif %}>Add-On Plan
-                                    </option>
-                                </select>
-                            </form>
-                        </div>
+                <div class="d-flex gap-2 align-items-center align-items-center">
+                    <div class="export-btn">
+                        <a href="?export=xlsx{% if status %}&status={{ status }}{% endif %}{% if plan %}&plan={{ plan }}{% endif %}{% if search %}&search={{ search }}{% endif %}"
+                            class="btn btn-primary">
+                            <i class="fa-solid fa-cloud-arrow-down"></i> Export
+                        </a>
+                    </div>
+
+                    <div class="d-flex gap-2 align-items-center">
+                        <i class="fa-solid fa-filter text-gray"></i>
                         <form method="get" class="d-inline">
-                            <select name="status" class="form-select bg-light-blue" onchange="this.form.submit()">
-                                <option value="">Choose Status</option>
-                                <option value="active" {% if status == "active" %}selected{% endif %}>Active</option>
-                                <option value="inactive" {% if status == "inactive" %}selected{% endif %}>Inactive
+                            <select name="plan" class="form-select bg-light-blue" onchange="this.form.submit()">
+                                <option value="">Choose Plan</option>
+                                <option value="base" {% if plan == "base" %}selected{% endif %}>Base Plan</option>
+                                <option value="add_on" {% if plan == "add_on" %}selected{% endif %}>Add-On Plan
                                 </option>
                             </select>
                         </form>
                     </div>
-<!--<<<<<<< HEAD-->
-<!--                    <form method="get" class="d-inline">-->
-<!--                        <select name="status" class="form-select bg-light-blue" onchange="this.form.submit()">-->
-<!--                            <option value="">Choose Status</option>-->
-<!--                            <option value="active" {% if status == "active" %}selected{% endif %}>Active</option>-->
-<!--                            <option value="inactive" {% if status == "inactive" %}selected{% endif %}>Inactive-->
-<!--                            </option>-->
-<!--                        </select>-->
-<!--                    </form>-->
-<!--                </div>-->
-<!--            </div>-->
-<!--            &lt;!&ndash;Create user Modal&ndash;&gt;-->
-<!--            <div id="createUser" class="modal">-->
-<!--                <div class="modal-dialog modal-xl">-->
-<!--                    <div class="modal-content">-->
-<!--                        &lt;!&ndash;Modal header&ndash;&gt;-->
-<!--                        <div class="modal-header">-->
-<!--                            <h4 class="modal-title">Create Customer</h4>-->
-<!--                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>-->
-<!--                        </div>-->
-
-<!--                        <div class="modal-body">-->
-<!--                            <form action="{% url 'dashboard:create_customer' %}" method="post">-->
-<!--                                {% csrf_token %}-->
-<!--                                <div class="row">-->
-<!--                                    <div class="col-md-4 col-12">-->
-<!--                                        <div class="form-group mb-3">-->
-<!--                                            <label for="name" class="form-label mb-3">Customer Name</label>-->
-<!--                                            <input type="text" class="form-control bg-light-blue" name="name">-->
-<!--=======-->
+                    <form method="get" class="d-inline">
+                        <select name="status" class="form-select bg-light-blue" onchange="this.form.submit()">
+                            <option value="">Choose Status</option>
+                            <option value="active" {% if status == "active" %}selected{% endif %}>Active</option>
+                            <option value="inactive" {% if status == "inactive" %}selected{% endif %}>Inactive
+                            </option>
+                        </select>
+                    </form>
                 </div>
-                <!--Create user Modal-->
-                <div id="createUser" class="modal">
-                    <div class="modal-dialog modal-xl">
-                        <div class="modal-content">
-                            <!--Modal header-->
-                            <div class="modal-header">
-                                <h4 class="modal-title">Create Customer</h4>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
+            </div>
+            <!--Create user Modal-->
+            <div id="createUser" class="modal">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <!--Modal header-->
+                        <div class="modal-header">
+                            <h4 class="modal-title">Create Customer</h4>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
 
-                            <div class="modal-body">
-                                <form action="{% url 'dashboard:create_customer' %}" method="post">
-                                    {% csrf_token %}
-                                    <div class="row">
-                                        <div class="col-md-4 col-12">
-                                            <div class="form-group mb-3">
-                                                <label for="name" class="form-label mb-3">Customer Name</label>
-                                                <input type="text" class="form-control bg-light-blue" name="name">
-                                            </div>
-                                        </div>
-
-
-                                        <div class="col-md-4 col-12">
-                                            <div class="form-group mb-3">
-                                                <label for="phone" class="form-label mb-3">Customer Number</label>
-                                                <input type="text" class="form-control bg-light-blue" name="mobile">
-                                            </div>
-                                        </div>
-
-
-                                        <div class="col-md-4 col-12">
-                                            <div class="form-group mb-3">
-                                                <label for="email" class="form-label mb-3">Customer Email</label>
-                                                <input type="email" class="form-control bg-light-blue" name="email">
-                                            </div>
+                        <div class="modal-body">
+                            <form action="{% url 'dashboard:create_customer' %}" method="post">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-md-4 col-12">
+                                        <div class="form-group mb-3">
+                                            <label for="name" class="form-label mb-3">Customer Name</label>
+                                            <input type="text" class="form-control bg-light-blue" name="name">
                                         </div>
                                     </div>
 
 
-<!--<<<<<<< HEAD-->
-<!--                                    <div class="col-md-4 col-12">-->
-<!--                                        <div class="form-group mb-3">-->
-<!--                                            <label for="phone" class="form-label mb-3">Customer Number</label>-->
-<!--                                            <input type="text" class="form-control bg-light-blue" name="mobile">-->
-<!--                                        </div>-->
-<!--                                    </div>-->
+                                    <div class="col-md-4 col-12">
+                                        <div class="form-group mb-3">
+                                            <label for="phone" class="form-label mb-3">Customer Number</label>
+                                            <input type="text" class="form-control bg-light-blue" name="mobile">
+                                        </div>
+                                    </div>
 
 
-<!--                                    <div class="col-md-4 col-12">-->
-<!--                                        <div class="form-group mb-3">-->
-<!--                                            <label for="email" class="form-label mb-3">Customer Email</label>-->
-<!--                                            <input type="email" class="form-control bg-light-blue" name="email">-->
-<!--                                        </div>-->
-<!--                                    </div>-->
-<!--                                </div>-->
+                                    <div class="col-md-4 col-12">
+                                        <div class="form-group mb-3">
+                                            <label for="email" class="form-label mb-3">Customer Email</label>
+                                            <input type="email" class="form-control bg-light-blue" name="email">
+                                        </div>
+                                    </div>
+                                </div>
 
 
-<!--                                <div class="row">-->
-<!--                                    <div class="col-md-12 col-12">-->
-<!--                                        <div class="form-group mb-5">-->
-<!--                                            <label for="name" class="form-label mb-3">Address</label>-->
-<!--                                            <textarea name="address" id=""-->
-<!--                                                class="form-control bg-light-blue"></textarea>-->
-<!--                                        </div>-->
-<!--                                    </div>-->
+                                <div class="row">
+                                    <div class="col-md-12 col-12">
+                                        <div class="form-group mb-5">
+                                            <label for="name" class="form-label mb-3">Address</label>
+                                            <textarea name="address" id=""
+                                                class="form-control bg-light-blue"></textarea>
+                                        </div>
+                                    </div>
 
-<!--                                </div>-->
+                                </div>
 
-<!--                                <div class="assign-title">-->
-<!--                                    <h4 class="assign-text mb-3">Assign Plan</h4>-->
-<!--                                </div>-->
+                                <div class="assign-title">
+                                    <h4 class="assign-text mb-3">Assign Plan</h4>
+                                </div>
 
-<!--                                <div class="row">-->
-<!--                                    &lt;!&ndash; Base Plan &ndash;&gt;-->
-<!--                                    <div class="col-md-6 col-12">-->
-<!--                                        <div class="form-group mb-3">-->
-<!--                                            <label for="{{ form.base_plan.id_for_label }}"-->
-<!--                                                class="form-label mb-3">Select Base Plan</label>-->
-<!--                                            {{ form.base_plan }}-->
-<!--                                        </div>-->
-<!--                                    </div>-->
+                                <div class="row">
+                                    <!-- Base Plan -->
+                                    <div class="col-md-6 col-12">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.base_plan.id_for_label }}"
+                                                class="form-label mb-3">Select Base Plan</label>
+                                            {{ form.base_plan }}
+                                        </div>
+                                    </div>
 
-<!--                                    &lt;!&ndash; Add-on Plans &ndash;&gt;-->
-<!--                                    <div class="col-md-6 col-12">-->
-<!--                                        <div class="form-group mb-3">-->
-<!--                                            <label for="{{ form.add_on_plan.id_for_label }}">Select Add-on-->
-<!--                                                Plans</label>-->
-<!--                                            {{ form.add_on_plan }}-->
-<!--                                        </div>-->
-<!--                                    </div>-->
-<!--                                </div>-->
+                                    <!-- Add-on Plans -->
+                                    <div class="col-md-6 col-12">
+                                        <div class="form-group mb-3">
+                                            <label for="{{ form.add_on_plan.id_for_label }}">Select Add-on
+                                                Plans</label>
+                                            {{ form.add_on_plan }}
+                                        </div>
+                                    </div>
+                                </div>
 
-<!--                                <div class="row">-->
-<!--                                    <div class="col-md-4 col-12">-->
-<!--                                        <div class="form-group mb-3">-->
-<!--                                            <label for="name" class="form-label mb-3">Due Amount</label>-->
-<!--                                            <input type="text" id="due_amount" name="due_amount"-->
-<!--                                                class="form-control bg-light-blue">-->
-<!--                                        </div>-->
-<!--                                    </div>-->
+                                <div class="row">
+                                    <div class="col-md-4 col-12">
+                                        <div class="form-group mb-3">
+                                            <label for="name" class="form-label mb-3">Due Amount</label>
+                                            <input type="text" id="due_amount" name="due_amount"
+                                                class="form-control bg-light-blue">
+                                        </div>
+                                    </div>
 
 
-<!--                                    <div class="col-md-4 col-12">-->
-<!--                                        <div class="form-group mb-3">-->
-<!--                                            <label for="name" class="form-label mb-3">Revised Amount</label>-->
-<!--                                            <input type="text" class="form-control bg-light-blue">-->
-<!--=======-->
-                                    <div class="row">
-                                        <div class="col-md-12 col-12">
-                                            <div class="form-group mb-5">
-                                                <label for="name" class="form-label mb-3">Address</label>
-                                                <textarea name="address" id=""
-                                                    class="form-control bg-light-blue"></textarea>
-                                            </div>
+                                    <div class="col-md-4 col-12">
+                                        <div class="form-group mb-3">
+                                            <label for="name" class="form-label mb-3">Revised Amount</label>
+                                            <input type="text" class="form-control bg-light-blue">
                                         </div>
 
                                     </div>
@@ -245,308 +152,149 @@
 
                                     </div>
 
-<!--<<<<<<< HEAD-->
-<!--                                </div>-->
-<!--                                <div class="d-flex justify-content-between gap-3">-->
-<!--                                    <div>-->
-<!--                                        <a href="{% url 'dashboard:customer_list' %}"-->
-<!--                                            class="btn btn-secondary">Cancel</a>-->
-<!--                                        <button type="submit" class="btn btn-primary">Create Customer</button>-->
-<!--                                    </div>-->
-<!--                                </div>-->
-<!--                            </form>-->
-<!--=======-->
-                                    <div class="row">
-                                        <!-- Base Plan -->
-                                        <div class="col-md-6 col-12">
-                                            <div class="form-group mb-3">
-                                                <label for="{{ form.base_plan.id_for_label }}"
-                                                    class="form-label mb-3">Select Base Plan</label>
-                                                {{ form.base_plan }}
-                                            </div>
-                                        </div>
-
-                                        <!-- Add-on Plans -->
-                                        <div class="col-md-6 col-12">
-                                            <div class="form-group mb-3">
-                                                <label for="{{ form.add_on_plan.id_for_label }}">Select Add-on
-                                                    Plans</label>
-                                                {{ form.add_on_plan }}
-                                            </div>
-                                        </div>
+                                </div>
+                                <div class="d-flex justify-content-between gap-3">
+                                    <div>
+                                        <a href="{% url 'dashboard:customer_list' %}"
+                                            class="btn btn-secondary">Cancel</a>
+                                        <button type="submit" class="btn btn-primary">Create Customer</button>
                                     </div>
-
-                                   <div class="row">
-                                        <div class="col-md-4 col-12">
-                                            <div class="form-group mb-3">
-                                                <label for="name" class="form-label mb-3">Due Amount</label>
-                                                <input type="text" id="due_amount" name="due_amount" class="form-control bg-light-blue">
-                                            </div>
-                                        </div>
-
-
-                                        <div class="col-md-4 col-12">
-                                            <div class="form-group mb-3">
-                                                <label for="name" class="form-label mb-3">Revised Amount</label>
-                                                <input type="text" class="form-control bg-light-blue">
-                                            </div>
-
-                                        </div>
-
-                                        <div class="col-md-4 col-12">
-                                            <div class="form-group mb-3">
-                                                <label for="name" class="form-label mb-3">Start Date</label>
-                                                <input type="date" class="form-control bg-light-blue">
-                                            </div>
-                                        </div>
-                                   </div>
-                                    <div class="row">
-                                        <div class="d-flex justify-content-between gap-3">
-                                            <div>
-                                                <a href="{% url 'dashboard:customer_list' %}" class="btn btn-secondary">Cancel</a>
-                                                <button type="submit" class="btn btn-primary">Create Customer</button>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
 
-                <!-- Updated Edit Modal -->
-                <div id="EditUser" class="modal fade" tabindex="-1">
-                    <div class="modal-dialog modal-xl">
-                        <div class="modal-content p-3">
-                            <div class="modal-header">
-                                <h4 class="modal-title">Edit Customer</h4>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
+            <!-- Updated Edit Modal -->
+            <div id="EditUser" class="modal fade" tabindex="-1">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content p-3">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Edit Customer</h4>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
 
-                            <div class="modal-body">
-                                <form id="editCustomerForm" method="post">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="customer_id" id="edit_customer_id">
+                        <div class="modal-body">
+                            <form id="editCustomerForm" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="customer_id" id="edit_customer_id">
 
-<!--<<<<<<< HEAD-->
-<!--                                <div class="row">-->
-<!--                                    <div class="col-md-4 col-12">-->
-<!--                                        <div class="form-group mb-3">-->
-<!--                                            <label for="edit_name" class="form-label mb-1">Customer Name</label>-->
-<!--                                            <input type="text" class="form-control bg-light-blue" id="edit_name"-->
-<!--                                                name="name" required>-->
-<!--                                        </div>-->
-<!--                                    </div>-->
-
-<!--                                    <div class="col-md-4 col-12">-->
-<!--                                        <div class="form-group mb-3">-->
-<!--                                            <label for="edit_mobile" class="form-label mb-1">Customer-->
-<!--                                                Number</label>-->
-<!--                                            <input type="text" class="form-control bg-light-blue" id="edit_mobile"-->
-<!--                                                name="mobile" required>-->
-<!--                                        </div>-->
-<!--                                    </div>-->
-
-<!--                                    <div class="col-md-4 col-12">-->
-<!--                                        <div class="form-group mb-3">-->
-<!--                                            <label for="edit_email" class="form-label mb-1">Customer-->
-<!--                                                Email</label>-->
-<!--                                            <input type="email" class="form-control bg-light-blue" id="edit_email"-->
-<!--                                                name="email">-->
-<!--                                        </div>-->
-<!--=======-->
-                                    <div class="row">
-                                        <div class="col-md-4 col-12">
-                                            <div class="form-group mb-3">
-                                                <label for="edit_name" class="form-label mb-1">Customer Name</label>
-                                                <input type="text" class="form-control bg-light-blue" id="edit_name"
-                                                    name="name" required>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-4 col-12">
-                                            <div class="form-group mb-3">
-                                                <label for="edit_mobile" class="form-label mb-1">Customer Number</label>
-                                                <input type="text" class="form-control bg-light-blue" id="edit_mobile"
-                                                    name="mobile" required>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-4 col-12">
-                                            <div class="form-group mb-3">
-                                                <label for="edit_email" class="form-label mb-1">Customer Email</label>
-                                                <input type="email" class="form-control bg-light-blue" id="edit_email"
-                                                    name="email">
-                                            </div>
+                                <div class="row">
+                                    <div class="col-md-4 col-12">
+                                        <div class="form-group mb-3">
+                                            <label for="edit_name" class="form-label mb-1">Customer Name</label>
+                                            <input type="text" class="form-control bg-light-blue" id="edit_name"
+                                                name="name" required>
                                         </div>
                                     </div>
 
-                                    <div class="row">
-                                        <div class="col-12">
-                                            <div class="form-group mb-3">
-                                                <label for="edit_address" class="form-label mb-1">Address</label>
-                                                <textarea name="address" id="edit_address"
-                                                    class="form-control bg-light-blue" required></textarea>
-                                            </div>
+                                    <div class="col-md-4 col-12">
+                                        <div class="form-group mb-3">
+                                            <label for="edit_mobile" class="form-label mb-1">Customer
+                                                Number</label>
+                                            <input type="text" class="form-control bg-light-blue" id="edit_mobile"
+                                                name="mobile" required>
                                         </div>
                                     </div>
 
-                                    <div class="assign-title">
-                                        <h4 class="assign-text mb-3">Assign Plan</h4>
-                                    </div>
-
-<!--<<<<<<< HEAD-->
-<!--                                <div class="row">-->
-<!--                                    <div class="col-12">-->
-<!--                                        <div class="form-group mb-3">-->
-<!--                                            <label for="edit_address" class="form-label mb-1">Address</label>-->
-<!--                                            <textarea name="address" id="edit_address"-->
-<!--                                                class="form-control bg-light-blue" required></textarea>-->
-<!--=======-->
-                                    <div class="row">
-                                        <div class="col-md-6 col-12">
-                                            <div class="form-group mb-3">
-                                                <label for="edit_base_plan" class="form-label mb-1">Select Base
-                                                    Plan</label>
-                                                <select name="base_plan" id="edit_base_plan"
-                                                    class="form-select bg-light-blue">
-                                                    <option value="">Select Base Plan</option>
-                                                    {% for plan in base_plans %}
-                                                    <option value="{{ plan.id }}">{{ plan.name }} - ₹{{ plan.price }}
-                                                    </option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
+                                    <div class="col-md-4 col-12">
+                                        <div class="form-group mb-3">
+                                            <label for="edit_email" class="form-label mb-1">Customer
+                                                Email</label>
+                                            <input type="email" class="form-control bg-light-blue" id="edit_email"
+                                                name="email">
                                         </div>
+                                    </div>
+                                </div>
 
-<!--<<<<<<< HEAD-->
-<!--                                <div class="assign-title">-->
-<!--                                    <h4 class="assign-text mb-3">Assign Plan</h4>-->
-<!--                                </div>-->
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="form-group mb-3">
+                                            <label for="edit_address" class="form-label mb-1">Address</label>
+                                            <textarea name="address" id="edit_address"
+                                                class="form-control bg-light-blue" required></textarea>
+                                        </div>
+                                    </div>
+                                </div>
 
-<!--                                <div class="row">-->
-<!--                                    <div class="col-md-6 col-12">-->
-<!--                                        <div class="form-group mb-3">-->
-<!--                                            <label for="edit_base_plan" class="form-label mb-1">Select Base-->
-<!--                                                Plan</label>-->
-<!--                                            <select name="base_plan" id="edit_base_plan"-->
-<!--                                                class="form-select bg-light-blue">-->
-<!--                                                <option value="">Select Base Plan</option>-->
-<!--                                                {% for plan in base_plans %}-->
-<!--                                                <option value="{{ plan.id }}">{{ plan.name }} - ₹{{ plan.price-->
-<!--                                                    }}-->
-<!--                                                </option>-->
-<!--                                                {% endfor %}-->
-<!--                                            </select>-->
-<!--                                        </div>-->
-<!--                                    </div>-->
+                                <div class="assign-title">
+                                    <h4 class="assign-text mb-3">Assign Plan</h4>
+                                </div>
 
-<!--                                    <div class="col-md-6 col-12">-->
-<!--                                        <div class="form-group mb-3">-->
-<!--                                            <label for="edit_add_on_plan" class="form-label mb-1">Select Add-on-->
-<!--                                                Plan</label>-->
-<!--                                            <select name="add_on_plan" id="edit_add_on_plan"-->
-<!--                                                class="form-select bg-light-blue" multiple>-->
-<!--                                                <option value="">Select Add-on Plan</option>-->
-<!--                                                {% for plan in add_on_plans %}-->
-<!--                                                <option value="{{ plan.id }}">{{ plan.name }} - ₹{{ plan.price-->
-<!--                                                    }}-->
-<!--                                                </option>-->
-<!--                                                {% endfor %}-->
-<!--                                            </select>-->
-<!--=======-->
-                                        <div class="col-md-6 col-12">
-                                            <div class="form-group mb-3">
-                                                <label for="edit_add_on_plan" class="form-label mb-1">Select Add-on
-                                                    Plan</label>
-                                                <select name="add_on_plan" id="edit_add_on_plan"
-                                                    class="form-select bg-light-blue" multiple>
-                                                    <option value="">Select Add-on Plan</option>
-                                                    {% for plan in add_on_plans %}
-                                                    <option value="{{ plan.id }}">{{ plan.name }} - ₹{{ plan.price }}
-                                                    </option>
-                                                    {% endfor %}
-                                                </select>
-                                            </div>
+                                <div class="row">
+                                    <div class="col-md-6 col-12">
+                                        <div class="form-group mb-3">
+                                            <label for="edit_base_plan" class="form-label mb-1">Select Base
+                                                Plan</label>
+                                            <select name="base_plan" id="edit_base_plan"
+                                                class="form-select bg-light-blue">
+                                                <option value="">Select Base Plan</option>
+                                                {% for plan in base_plans %}
+                                                <option value="{{ plan.id }}">{{ plan.name }} - ₹{{ plan.price
+                                                    }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
                                         </div>
                                     </div>
 
-                                    <div class="row">
-                                        <div class="col-md-4 col-12">
-                                            <div class="form-group mb-3">
-                                                <label for="edit_due_amount" class="form-label mb-1">Due Amount</label>
-                                                <input type="text" id="edit_due_amount" class="form-control"
-                                                    name="due_amount" readonly>
-                                            </div>
+                                    <div class="col-md-6 col-12">
+                                        <div class="form-group mb-3">
+                                            <label for="edit_add_on_plan" class="form-label mb-1">Select Add-on
+                                                Plan</label>
+                                            <select name="add_on_plan" id="edit_add_on_plan"
+                                                class="form-select bg-light-blue" multiple>
+                                                <option value="">Select Add-on Plan</option>
+                                                {% for plan in add_on_plans %}
+                                                <option value="{{ plan.id }}">{{ plan.name }} - ₹{{ plan.price
+                                                    }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
                                         </div>
+                                    </div>
+                                </div>
 
-<!--<<<<<<< HEAD-->
-<!--                                <div class="row">-->
-<!--                                    <div class="col-md-4 col-12">-->
-<!--                                        <div class="form-group mb-3">-->
-<!--                                            <label for="edit_due_amount" class="form-label mb-1">Due-->
-<!--                                                Amount</label>-->
-<!--                                            <input type="text" id="edit_due_amount" class="form-control"-->
-<!--                                                name="due_amount" readonly>-->
-<!--                                        </div>-->
-<!--                                    </div>-->
-
-<!--                                    <div class="col-md-4 col-12">-->
-<!--                                        <div class="form-group mb-3">-->
-<!--                                            <label for="edit_revised_amount" class="form-label mb-1">Revised-->
-<!--                                                Amount</label>-->
-<!--                                            <input type="text" id="edit_revised_amount" class="form-control"-->
-<!--                                                name="revised_amount">-->
-<!--                                        </div>-->
-<!--                                    </div>-->
-
-<!--                                    <div class="col-md-4 col-12">-->
-<!--                                        <div class="form-group mb-3">-->
-<!--                                            <label for="id_start_date" class="form-label mb-1">Start-->
-<!--                                                Date</label>-->
-<!--                                            <input type="date" id="id_start_date" class="form-control"-->
-<!--                                                name="start_date">-->
-<!--                                        </div>-->
-<!--                                    </div>-->
-<!--                                </div>-->
-
-<!--                                <div class="d-flex justify-content-between gap-3 mt-3">-->
-<!--                                    <button type="button" class="btn btn-secondary"-->
-<!--                                        data-bs-dismiss="modal">Cancel</button>-->
-<!--                                    <button type="submit" class="btn btn-primary">Update Customer</button>-->
-<!--                                </div>-->
-<!--                            </form>-->
-<!--=======-->
-                                        <div class="col-md-4 col-12">
-                                            <div class="form-group mb-3">
-                                                <label for="edit_revised_amount" class="form-label mb-1">Revised
-                                                    Amount</label>
-                                                <input type="text" id="edit_revised_amount" class="form-control"
-                                                    name="revised_amount">
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-4 col-12">
-                                            <div class="form-group mb-3">
-                                                <label for="id_start_date" class="form-label mb-1">Start Date</label>
-                                                <input type="date" id="id_start_date" class="form-control"
-                                                    name="start_date">
-                                            </div>
+                                <div class="row">
+                                    <div class="col-md-4 col-12">
+                                        <div class="form-group mb-3">
+                                            <label for="edit_due_amount" class="form-label mb-1">Due
+                                                Amount</label>
+                                            <input type="text" id="edit_due_amount" class="form-control"
+                                                name="due_amount" readonly>
                                         </div>
                                     </div>
 
-                                    <div class="d-flex justify-content-between gap-3 mt-3">
-                                        <button type="button" class="btn btn-secondary"
-                                            data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-primary">Update Customer</button>
+                                    <div class="col-md-4 col-12">
+                                        <div class="form-group mb-3">
+                                            <label for="edit_revised_amount" class="form-label mb-1">Revised
+                                                Amount</label>
+                                            <input type="text" id="edit_revised_amount" class="form-control"
+                                                name="revised_amount">
+                                        </div>
                                     </div>
-                                </form>
-                            </div>
+
+                                    <div class="col-md-4 col-12">
+                                        <div class="form-group mb-3">
+                                            <label for="id_start_date" class="form-label mb-1">Start
+                                                Date</label>
+                                            <input type="date" id="id_start_date" class="form-control"
+                                                name="start_date">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between gap-3 mt-3">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Update Customer</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
+            </div>
 
             <!--DeactivateModal-->
             <div class="modal fade" id="DeactivateModal" tabindex="-1" aria-hidden="true">
@@ -572,149 +320,72 @@
                                     data-bs-dismiss="modal">Deactivate</button>
                             </div>
 
-                            <div class="danger-content">
-                                <h6 class="text-gray mb-3">This will <span class="fw-bold">Deactivate</span> the user
-                                    <span class="fw-bold">John Smith</span>
-                                </h6>
-                                <div class="justify-content-center mt-3">
-                                    <button type="button" class="btn btn-secondary "
-                                        data-bs-dismiss="modal">cancel</button>
-                                    <button type="button" id="DelmodalConfirmBtn" class="btn btn-danger"
-                                        data-bs-dismiss="modal">Deactivate</button>
-                                </div>
-
                         </div>
                     </div>
                 </div>
             </div>
 
-<!--<<<<<<< HEAD-->
-<!--            &lt;!&ndash;Table Section&ndash;&gt;-->
-<!--            <div class="table-responsive mt-3">-->
-<!--                <table id="myTable" class="display table table-bordered table-striped text-center align-middle">-->
-<!--                    <thead>-->
-<!--                        <tr>-->
-<!--                            <th>Customer ID</th>-->
-<!--                            <th>Customer Name</th>-->
-<!--                            <th>Customer No</th>-->
-<!--                            <th>Plan Details</th>-->
-<!--                            <th>Status</th>-->
-<!--                            <th>Due Amount</th>-->
-<!--                            <th>Last Payment</th>-->
-<!--                            <th>Actions</th>-->
-<!--                        </tr>-->
-<!--                    </thead>-->
-<!--                    <tbody>-->
-<!--                        {% for customer in customers %}-->
-<!--                        <tr>-->
-<!--                            <td class="text-blue">{{ customer.customer_id }}</td>-->
-<!--                            <td>{{ customer.name }}</td>-->
-<!--                            <td>{{ customer.mobile }}</td>-->
-<!--                            <td>-->
-<!--                                {% if customer.plan_details != "No Plan" %}-->
-<!--                                <span class="badge bg-white border text-gray">{{ customer.plan_details|safe }}</span>-->
-<!--                                {% else %}-->
-<!--                                <span class="text-muted">No Plan</span>-->
-<!--                                {% endif %}-->
-<!--                            </td>-->
-<!--                            <td>-->
-<!--                                {% if customer.status == "active" %}-->
-<!--                                <button class="btn btn-success">Active</button>-->
-<!--                                {% else %}-->
-<!--                                <button class="btn btn-danger">Inactive</button>-->
-<!--                                {% endif %}-->
-<!--                            </td>-->
-<!--                            <td><span class="text-red">₹{{ customer.due_amount }}</span></td>-->
-<!--                            <td>{{ customer.last_payment }}</td>-->
-<!--                            <td>-->
-<!--                                <div class="d-flex justify-content-between">-->
-<!--                                    <a href="{% url 'dashboard:customer_detail' customer.id %}" class="text-gray">-->
-<!--                                        <i class="fa-regular fa-eye text-gray"></i>-->
-<!--                                    </a>-->
-<!--                                    <i class="fa-solid fa-pen-to-square text-blue" style="cursor: pointer;"-->
-<!--                                        data-bs-toggle="modal" data-bs-target="#EditUser"-->
-<!--                                        onclick="loadCustomerData({{ customer.id }})">-->
-<!--                                    </i>-->
-<!--                                    <form action="{% url 'dashboard:delete_customer' customer.id %}" method="post"-->
-<!--                                        class="deleteForm">-->
-<!--                                        {% csrf_token %}-->
-<!--                                        <button type="submit" class="btn btn-link p-0 text-red">-->
-<!--                                            <i class="fa-solid fa-user-minus text-secondary"></i>-->
-<!--                                        </button>-->
-<!--                                    </form>-->
-<!--                                </div>-->
-<!--                            </td>-->
+            <!--Table Section-->
+            <div class="table-responsive mt-3">
+                <table id="myTable" class="display table table-bordered table-striped text-center align-middle">
+                    <thead>
+                        <tr>
+                            <th>Customer ID</th>
+                            <th>Customer Name</th>
+                            <th>Customer No</th>
+                            <th>Plan Details</th>
+                            <th>Status</th>
+                            <th>Due Amount</th>
+                            <th>Last Payment</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in customers %}
+                        <tr>
+                            <td class="text-blue">{{ customer.customer_id }}</td>
+                            <td>{{ customer.name }}</td>
+                            <td>{{ customer.mobile }}</td>
+                            <td>
+                                {% if customer.plan_details != "No Plan" %}
+                                <span class="badge bg-white border text-gray">{{ customer.plan_details|safe }}</span>
+                                {% else %}
+                                <span class="text-muted">No Plan</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if customer.status == "active" %}
+                                <button class="btn btn-success">Active</button>
+                                {% else %}
+                                <button class="btn btn-danger">Inactive</button>
+                                {% endif %}
+                            </td>
+                            <td><span class="text-red">₹{{ customer.due_amount }}</span></td>
+                            <td>{{ customer.last_payment }}</td>
+                            <td>
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'dashboard:customer_detail' customer.id %}" class="text-gray">
+                                        <i class="fa-regular fa-eye text-gray"></i>
+                                    </a>
+                                    <i class="fa-solid fa-pen-to-square text-blue" style="cursor: pointer;"
+                                        data-bs-toggle="modal" data-bs-target="#EditUser"
+                                        onclick="loadCustomerData({{ customer.id }})">
+                                    </i>
+                                    <form action="{% url 'dashboard:delete_customer' customer.id %}" method="post"
+                                        class="deleteForm">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-link p-0 text-red">
+                                            <i class="fa-solid fa-user-minus text-secondary"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
 
-<!--                        </tr>-->
-<!--                        {% endfor %}-->
-<!--                    </tbody>-->
+                        </tr>
+                        {% endfor %}
+                    </tbody>
 
-<!--                </table>-->
-<!--=======-->
-                <!--Table Section-->
-                <div class="table-responsive mt-3">
-                    <table id="myTable" class="display table table-bordered table-striped text-center align-middle">
-                        <thead>
-                            <tr>
-                                <th>Customer ID</th>
-                                <th>Customer Name</th>
-                                <th>Customer No</th>
-                                <th>Plan Details</th>
-                                <th>Status</th>
-                                <th>Due Amount</th>
-                                <th>Last Payment</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for customer in customers %}
-                            <tr>
-                                <td class="text-blue">{{ customer.customer_id }}</td>
-                                <td>{{ customer.name }}</td>
-                                <td>{{ customer.mobile }}</td>
-                                <td>
-                                    {% if customer.plan_details != "No Plan" %}
-                                    <span class="badge bg-white border text-gray">{{ customer.plan_details|safe }}</span>
-                                    {% else %}
-                                    <span class="text-muted">No Plan</span>
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if customer.status == "active" %}
-                                    <button class="btn btn-success">Active</button>
-                                    {% else %}
-                                    <button class="btn btn-danger">Inactive</button>
-                                    {% endif %}
-                                </td>
-                                <td><span class="text-red">₹{{ customer.due_amount }}</span></td>
-                                <td>{{ customer.last_payment }}</td>
-                                <td>
-                                    <div class="d-flex justify-content-between">
-                                            <a href="{% url 'dashboard:customer_detail' customer.id %}" class="text-gray">
-                                                <i class="fa-regular fa-eye text-gray"></i>
-                                            </a>
-                                            <i class="fa-solid fa-pen-to-square text-blue"
-                                               style="cursor: pointer;"
-                                               data-bs-toggle="modal"
-                                               data-bs-target="#EditUser"
-                                               onclick="loadCustomerData({{ customer.id }})">
-                                            </i>
-                                        <form action="{% url 'dashboard:delete_customer' customer.id %}" method="post"
-                                            class="deleteForm">
-                                            {% csrf_token %}
-                                            <button type="submit" class="btn btn-link p-0 text-red">
-                                                <i class="fa-solid fa-user-minus text-secondary"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-
-                    </table>
-                </div>
+                </table>
             </div>
         </div>
     </div>
