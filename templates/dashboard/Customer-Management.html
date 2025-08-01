@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% include 'includes/scripts.html' %}
 {% load static %}
 {% block title %}Customer Detail{% endblock %}
 {% block content %}
@@ -63,7 +64,7 @@
                         </div>
 
                         <div class="modal-body">
-                            <form action="{% url 'dashboard:create_customer' %}" method="post">
+                            <form id="createCustomerForm" action="{% url 'dashboard:create_customer' %}" method="post">
                                 {% csrf_token %}
                                 <div class="row">
                                     <div class="col-md-4 col-12">
@@ -184,7 +185,7 @@
                                         <div class="form-group mb-3">
                                             <label for="edit_name" class="form-label mb-1">Customer Name</label>
                                             <input type="text" class="form-control bg-light-blue" id="edit_name"
-                                                name="name" required>
+                                                name="name">
                                         </div>
                                     </div>
 
@@ -193,7 +194,7 @@
                                             <label for="edit_mobile" class="form-label mb-1">Customer
                                                 Number</label>
                                             <input type="text" class="form-control bg-light-blue" id="edit_mobile"
-                                                name="mobile" required>
+                                                name="mobile">
                                         </div>
                                     </div>
 
@@ -212,7 +213,7 @@
                                         <div class="form-group mb-3">
                                             <label for="edit_address" class="form-label mb-1">Address</label>
                                             <textarea name="address" id="edit_address"
-                                                class="form-control bg-light-blue" required></textarea>
+                                                class="form-control bg-light-blue"></textarea>
                                         </div>
                                     </div>
                                 </div>

@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% include 'includes/scripts.html' %}
 {% load static %}
 {% block title %}Plan Detail{% endblock %}
 {% block content %}
@@ -66,21 +67,21 @@
                         </div>
 
                         <div class="modal-body">
-                            <form method="post" action="{% url 'plan:create_plan' %}">
+                            <form method="post" action="{% url 'plan:create_plan' %}" class="plan-form">
                                 {% csrf_token %}
 
                                 <div class="row g-4">
                                     <div class="col-md-3 col-12">
                                         <div class="form-group mb-3">
                                             <label for="name" class="form-label mb-3">Plan Name</label>
-                                            <input type="text" class="form-control bg-light-blue" name="name" required>
+                                            <input type="text" class="form-control bg-light-blue" name="name">
                                         </div>
                                     </div>
 
                                     <div class="col-md-3 col-12">
                                         <div class="form-group mb-3">
                                             <label for="plan_type" class="form-label mb-3">Plan Type</label>
-                                            <select name="plan_type" class="form-select bg-light-blue" required>
+                                            <select name="plan_type" class="form-select bg-light-blue">
                                                 <option value="base">Base Plan</option>
                                                 <option value="add_on">Add-On Plan</option>
                                             </select>
@@ -91,7 +92,7 @@
                                         <div class="form-group mb-3">
                                             <label for="price" class="form-label mb-3">Price</label>
                                             <input type="number" step="0.01" name="price"
-                                                class="form-control bg-light-blue" required>
+                                                class="form-control bg-light-blue">
                                         </div>
                                     </div>
 
@@ -99,8 +100,7 @@
                                         <div class="form-group mb-3">
                                             <label for="duration_days" class="form-label mb-3">Plan Duration
                                                 (Days)</label>
-                                            <input type="number" name="duration_days" class="form-control bg-light-blue"
-                                                required>
+                                            <input type="number" name="duration_days" class="form-control bg-light-blue">
                                         </div>
                                     </div>
 
@@ -110,8 +110,7 @@
                                     <div class="col-md-12 col-12">
                                         <div class="form-group mb-5">
                                             <label for="description" class="form-label mb-3">Description</label>
-                                            <textarea name="description" class="form-control bg-light-blue"
-                                                required></textarea>
+                                            <textarea name="description" class="form-control bg-light-blue"></textarea>
                                         </div>
                                     </div>
                                 </div>
@@ -194,7 +193,7 @@
                         </div>
 
                         <div class="modal-body">
-                            <form method="post" action="{% url 'plan:update_plan' plan.id %}">
+                            <form method="post" action="{% url 'plan:update_plan' plan.id %}" class="plan-form">
                                 {% csrf_token %}
 
                                 <div class="row g-4">
@@ -202,7 +201,7 @@
                                         <div class="form-group mb-3">
                                             <label for="name" class="form-label mb-3">Plan Name</label>
                                             <input type="text" name="name" value="{{ plan.name }}"
-                                                class="form-control bg-light-blue" required>
+                                                class="form-control bg-light-blue">
                                         </div>
                                     </div>
 
@@ -221,7 +220,7 @@
                                         <div class="form-group mb-3">
                                             <label for="price" class="form-label mb-3">Price</label>
                                             <input type="number" name="price" step="0.01" value="{{ plan.price }}"
-                                                class="form-control bg-light-blue" required>
+                                                class="form-control bg-light-blue">
                                         </div>
                                     </div>
 
@@ -230,7 +229,7 @@
                                             <label for="duration_days" class="form-label mb-3">Plan Duration
                                                 (Days)</label>
                                             <input type="number" name="duration_days" value="{{ plan.duration_days }}"
-                                                class="form-control bg-light-blue" required>
+                                                class="form-control bg-light-blue">
                                         </div>
                                     </div>
                                 </div>
@@ -239,8 +238,7 @@
                                     <div class="col-md-12 col-12">
                                         <div class="form-group mb-5">
                                             <label for="description" class="form-label mb-3">Description</label>
-                                            <textarea name="description" class="form-control bg-light-blue"
-                                                required>{{ plan.description }}</textarea>
+                                            <textarea name="description" class="form-control bg-light-blue">{{ plan.description }}</textarea>
                                         </div>
                                     </div>
                                 </div>
