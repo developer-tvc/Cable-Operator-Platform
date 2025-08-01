@@ -125,6 +125,16 @@ document.addEventListener("DOMContentLoaded", function () {
     lengthChange: false,
   });
 
+  const toggle = document.getElementById("togglePassword");
+  const passwordField = document.getElementById("id_password");
+
+  toggle.addEventListener("click", function () {
+    const type = passwordField.getAttribute("type") === "password" ? "text" : "password";
+    passwordField.setAttribute("type", type);
+    this.classList.toggle("fa-eye");
+    this.classList.toggle("fa-eye-slash");
+  });
+  
 });
 
 //Success Modal//

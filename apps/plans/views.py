@@ -103,11 +103,24 @@ class PlanListView(PlanFilterMixin, ListView):
 class PlanCreateView(CreateView):
     model = Plan
     form_class = PlanForm
+    template_name = 'plans/plan-management.html'
     success_url = reverse_lazy('plan:plan_management')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['plans'] = Plan.objects.all().order_by('-id')  # Or whatever ordering you prefer
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, "Plan created successfully.")
         return super().form_valid(form)
+
+    def form_invalid(self, form):
+        context = self.get_context_data(form=form)
+        context["open_create_modal"] = True
+        messages.error(self.request, "Please correct the errors below.")
+        return self.render_to_response(context)
+
 
 
 class PlanUpdateView(UpdateView):

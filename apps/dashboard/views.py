@@ -35,15 +35,19 @@ class AdminLoginView(View):
     def post(self, request):
         form = AdminLoginForm(request.POST)
         if form.is_valid():
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
-            user = authenticate(request, email=email, password=password)
-            if user is not None:
+            # Credentials already validated in form's clean()
+            user = authenticate(
+                request,
+                username=form.cleaned_data['email'],  # Or just email
+                password=form.cleaned_data['password']
+            )
+            if user:
                 login(request, user)
                 request.session['just_logged_in'] = True
                 return redirect('dashboard:admin_dashboard')
-            else:
-                messages.error(request, 'Invalid email or password.')
+        else:
+            messages.error(request, 'Login failed. Please correct the errors below.')
+
         return render(request, self.template_name, {'form': form})
     
 # Admin Logout View    

@@ -53,9 +53,9 @@
                 </div>
             </div>
             <!--Create user Modal-->
-            <div id="createUser" class="modal">
+            <div id="createUser" class="modal" tabindex="-1">
                 <div class="modal-dialog modal-xl">
-                    <div class="modal-content">
+                    <div class="modal-content p-3">
                         <!--Modal header-->
                         <div class="modal-header">
                             <h4 class="modal-title">Create Customer</h4>
@@ -153,12 +153,10 @@
                                     </div>
 
                                 </div>
-                                <div class="d-flex justify-content-between gap-3">
-                                    <div>
-                                        <a href="{% url 'dashboard:customer_list' %}"
-                                            class="btn btn-secondary">Cancel</a>
-                                        <button type="submit" class="btn btn-primary">Create Customer</button>
-                                    </div>
+                                <div class="d-flex justify-content-end gap-3">
+                                    <a href="{% url 'dashboard:customer_list' %}"
+                                        class="btn btn-secondary">Cancel</a>
+                                    <button type="submit" class="btn btn-primary">Create Customer</button>
                                 </div>
                             </form>
                         </div>
@@ -167,6 +165,7 @@
             </div>
 
             <!-- Updated Edit Modal -->
+            {% for customer in customers %}
             <div id="EditUser" class="modal fade" tabindex="-1">
                 <div class="modal-dialog modal-xl">
                     <div class="modal-content p-3">
@@ -285,7 +284,7 @@
                                     </div>
                                 </div>
 
-                                <div class="d-flex justify-content-between gap-3 mt-3">
+                                <div class="d-flex justify-content-end gap-3">
                                     <button type="button" class="btn btn-secondary"
                                         data-bs-dismiss="modal">Cancel</button>
                                     <button type="submit" class="btn btn-primary">Update Customer</button>
@@ -298,7 +297,6 @@
 
             <!--DeactivateModal-->
             <div class="modal fade" id="DeactivateModal" tabindex="-1" aria-hidden="true">
-                >>>>>>> 9697285fb562073defb70b15ede72a36603f171c
                 <div class="modal-dialog modal-md modal-dialog-centered">
                     <div class="modal-content text-center p-3">
                         <div class="d-flex justify-content-center">
@@ -312,7 +310,7 @@
                         <div class="danger-content">
                             <h6 class="text-gray mb-3">This will <span class="fw-bold">Deactivate</span> the
                                 user
-                                <span class="fw-bold">John Smith</span>
+                                <span class="fw-bold">{{ customer.name }}</span>
                             </h6>
                             <div class="justify-content-center mt-3">
                                 <button type="button" class="btn btn-secondary " data-bs-dismiss="modal">cancel</button>
@@ -324,10 +322,11 @@
                     </div>
                 </div>
             </div>
+            {% endfor %}
 
             <!--Table Section-->
-            <div class="table-responsive mt-3">
-                <table id="myTable" class="display table table-bordered table-striped text-center align-middle">
+            <div class="table-responsive">
+                <table id="myTable" class="display mt-3 table-bordered">
                     <thead>
                         <tr>
                             <th>Customer ID</th>
