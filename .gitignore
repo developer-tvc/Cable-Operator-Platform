@@ -39,4 +39,4 @@ venv/
 
 # Media/static (if needed)
 /staticfiles/
-/media/qr_codes/
+qr_codes/

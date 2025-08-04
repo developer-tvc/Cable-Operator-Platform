@@ -2,13 +2,11 @@ from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.contrib import messages
 from django.shortcuts import redirect
-from django.db.models import Q
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from .models import Plan
 from .forms import PlanForm
-from django.http import HttpResponse
 from django.views import View
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
@@ -17,7 +15,6 @@ from django.conf import settings
 import os
 from apps.accounts.models import Customer
 from reportlab.lib.units import inch
-from django.shortcuts import get_object_or_404
 
 
 # Mixins for filtering and exporting plans
@@ -106,8 +103,17 @@ class PlanCreateView(CreateView):
     success_url = reverse_lazy('plan:plan_management')
 
     def form_valid(self, form):
+        plan = form.save()
+        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'message': 'Plan created successfully'})
         messages.success(self.request, "Plan created successfully.")
         return super().form_valid(form)
+
+    def form_invalid(self, form):
+        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+        messages.error(self.request, "Please correct the errors below.")
+        return super().form_invalid(form)
 
 
 class PlanUpdateView(UpdateView):
@@ -115,6 +121,19 @@ class PlanUpdateView(UpdateView):
     form_class = PlanForm
     success_url = reverse_lazy('plan:plan_management')
     context_object_name = 'plan'
+
+    def form_valid(self, form):
+        form.save()
+        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': True, 'message': 'Plan updated successfully'})
+        messages.success(self.request, "Plan updated successfully.")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'errors': form.errors}, status=400)
+        messages.error(self.request, "Please correct the errors below.")
+        return super().form_invalid(form)
 
 
 class PlanDeleteView(DeleteView):
