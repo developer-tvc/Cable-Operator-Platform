@@ -296,6 +296,26 @@
                 </div>
             </div>
 
+            <!-- Success Modal -->
+            <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-md modal-dialog-centered">
+                    <div class="modal-content text-center p-3">
+                        <div class="d-flex justify-content-center">
+                            <div class="success-modal-round mb-1">
+                                <i class="fa-regular fa-circle-check"></i>
+                            </div>
+                        </div>
+                        <div class="success-text mb-1">
+                            <h3 class="text-success">Success!!!</h3>
+                        </div>
+                        <div class="success-content">
+                            <h6 id="successMessage" class="text-gray mb-3"></h6>
+                            <button type="button" class="btn btn-success okbtn" data-bs-dismiss="modal">OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!--DeactivateModal-->
             <div class="modal fade" id="DeactivateModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-md modal-dialog-centered">
@@ -361,7 +381,7 @@
                                 {% endif %}
                             </td>
                             <td><span class="text-red">₹{{ customer.due_amount }}</span></td>
-                            <td>{{ customer.last_payment }}</td>
+                            <td>{{ customer.last_payment|date:"M j, Y" }}</td>
                             <td>
                                 <div class="d-flex justify-content-between">
                                     <a href="{% url 'dashboard:customer_detail' customer.id %}" class="text-gray">

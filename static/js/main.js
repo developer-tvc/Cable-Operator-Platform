@@ -29,19 +29,66 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  /* ---------- PLAN FORM VALIDATION ---------- */
+  /* ---------- PLAN FORM SUBMISSION ---------- */
   document.querySelectorAll('.plan-form').forEach(form => {
-    form.addEventListener('submit', function (e) {
-      if (!validatePlanForm(form)) e.preventDefault();
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      if (!validatePlanForm(form)) return;
+
+      const formData = new FormData(form);
+      const actionUrl = form.getAttribute('action');
+      const isEdit = actionUrl.includes('update');
+
+      try {
+        const response = await fetch(actionUrl, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          body: formData,
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          // Close modal
+          const modalInstance = bootstrap.Modal.getInstance(form.closest('.modal'));
+          if (modalInstance) modalInstance.hide();
+
+          // Reset form
+          form.reset();
+
+          // Set dynamic success message
+          const message = isEdit ? "Plan Updated Successfully" : "Plan Created Successfully";
+          const messageElement = document.getElementById('successMessage');
+          if (messageElement) {
+            messageElement.textContent = message;
+          }
+
+          // Show success modal
+          const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+          successModal.show();
+
+          // Reload when OK button is clicked
+          const okBtn = document.querySelector('#successModal .okbtn');
+          if (okBtn) {
+            okBtn.addEventListener('click', function () {
+              window.location.reload();
+            }, { once: true });  // ensure it fires only once
+          }
+
+        } else {
+          alert("Error: " + JSON.stringify(result.errors));
+        }
+      } catch (err) {
+        console.error("Plan form submission error:", err);
+      }
     });
   });
 
   /* ---------- CREATE CUSTOMER MODAL ---------- */
   $('#createUser').on('shown.bs.modal', function () {
-    const $modal   = $('#createUser');
+    const $modal = $('#createUser');
     const $baseSel = $modal.find('#id_base_plan');
-    const $addSel  = $modal.find('#id_add_on_plan');
-    const $dueAmt  = $modal.find('#due_amount');
+    const $addSel = $modal.find('#id_add_on_plan');
+    const $dueAmt = $modal.find('#due_amount');
 
     $addSel.select2({
       dropdownParent: $modal,
@@ -50,8 +97,8 @@ document.addEventListener("DOMContentLoaded", function () {
       allowClear: true,
     });
 
-    function refreshPlanInfo () {
-      const baseId   = $baseSel.val() || '';
+    function refreshPlanInfo() {
+      const baseId = $baseSel.val() || '';
       const addonIds = $addSel.val() ? $addSel.val().join(',') : '';
 
       if (!baseId) return $dueAmt.val('');
@@ -67,15 +114,61 @@ document.addEventListener("DOMContentLoaded", function () {
     refreshPlanInfo();
   });
 
-  /* ---------- CREATE CUSTOMER FORM VALIDATION ---------- */
+  /* ---------- CREATE CUSTOMER FORM SUBMISSION ---------- */
   const createForm = document.getElementById('createCustomerForm');
   if (createForm) {
-    createForm.addEventListener('submit', function (e) {
-      if (!validateCustomerCreateForm(this)) {
-        e.preventDefault();
+    createForm.addEventListener('submit', async function (e) {
+      e.preventDefault(); // prevent default form submit
+
+      if (!validateCustomerCreateForm(this)) return;
+
+      const formData = new FormData(this);
+      const actionUrl = this.getAttribute('action');
+
+      try {
+        const response = await fetch(actionUrl, {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Hide create modal
+          const modal = bootstrap.Modal.getInstance(document.getElementById('createUser'));
+          if (modal) modal.hide();
+
+          // Reset form
+          this.reset();
+
+          // Set success message
+          const msgEl = document.getElementById('successMessage');
+          if (msgEl) {
+            msgEl.textContent = "Customer Created Successfully";
+          }
+
+          // Show success modal
+          const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+          successModal.show();
+
+          // Reload on OK
+          document.querySelector('#successModal .okbtn').addEventListener('click', function () {
+            window.location.reload();
+          }, { once: true });
+
+        } else {
+          alert("Error: " + JSON.stringify(result.message || result.errors));
+        }
+
+      } catch (err) {
+        console.error("Customer creation failed:", err);
       }
     });
   }
+
 
   /* ---------- SELECT2 INIT FOR EDIT MODAL ---------- */
   $('#EditUser').on('shown.bs.modal', function () {
@@ -127,9 +220,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const result = await response.json();
         if (result.success) {
-          alert(result.message);
-          window.location.reload();
-        } else {
+          const modal = bootstrap.Modal.getInstance(document.getElementById('EditUser'));
+          if (modal) modal.hide();
+
+          // Reset form (optional)
+          this.reset();
+
+          const msg = document.getElementById('successMessage');
+          if (msg) msg.textContent = "Customer Updated Successfully";
+
+          const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+          successModal.show();
+
+          document.querySelector('#successModal .okbtn').addEventListener('click', function () {
+            window.location.reload();
+          }, { once: true });
+        }
+        else {
           alert("Error: " + JSON.stringify(result.errors));
         }
       } catch (error) {
