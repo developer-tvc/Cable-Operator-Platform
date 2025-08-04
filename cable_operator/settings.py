@@ -11,19 +11,23 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'i$_yqxkcq7pnxlcbs_r^hidf2h*00ydjq-$3ww=t(qd7(+3v@&'
+from decouple import config
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = []
 AUTH_USER_MODEL = 'accounts.AdminUser'
@@ -44,6 +48,7 @@ INSTALLED_APPS = [
     'apps.plans.apps.PlansConfig',
     'apps.subscriptions.apps.SubscriptionsConfig',
     'widget_tweaks',
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
@@ -54,6 +59,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+]
+INTERNAL_IPS = [
+    '127.0.0.1',
 ]
 
 ROOT_URLCONF = 'cable_operator.urls'
@@ -61,7 +70,8 @@ ROOT_URLCONF = 'cable_operator.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        # 'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -124,7 +134,18 @@ USE_L10N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
+# Static files (css, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+ALLOWED_HOSTS = [
+    '127.0.0.1',        # localhost
+    'localhost',
+    '192.168.1.8',      # your local IP (from `ip addr`)
+]
