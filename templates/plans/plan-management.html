@@ -1,311 +1,305 @@
 {% extends 'base.html' %}
+{% include 'includes/scripts.html' %}
 {% load static %}
 {% block title %}Plan Detail{% endblock %}
 {% block content %}
 
 <!--Main Section-->
 <div class="container-fluid">
-    <div class="table-section p-3">
-        <div class="d-flex justify-content-between mb-4 header-section">
-            <h4 class="text-gray mb-3 title">Plan Management</h4>
-            <div>
-                <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#createplan"><i
-                        class="fa-solid fa-user-plus"></i> Create Plan</button>
-            </div>
+  <div class="table-section p-3">
+    <div class="d-flex justify-content-between mb-4 header-section">
+      <h4 class="text-gray mb-3 title">Plan Management</h4>
+      <div>
+        <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#createplan"><i
+            class="fa-solid fa-user-plus"></i> Create Plan</button>
+      </div>
 
-        </div>
-        <div class="card border-0 p-4">
-            <h5 class="text-gray mb-3">Plan Lists</h5>
-            <!--Filter Section-->
-            <div class="filter-section d-flex justify-content-between">
-                <form method="get" class="search-filter">
-                    <input type="text" name="search" placeholder="Search plans By Name" class="form-control search-box"
-                        value="{{ search }}">
-                </form>
-
-                <div class="d-flex gap-2 align-items-center align-items-center">
-                    <div class="export-btn">
-                        <a href="?export=xlsx{% if status %}&status={{ status }}{% endif %}{% if type %}&type={{ type }}{% endif %}{% if search %}&search={{ search }}{% endif %}"
-                            class="btn btn-primary">
-                            <i class="fa-solid fa-cloud-arrow-down"></i> Export
-                        </a>
-                    </div>
-
-                    <div class="d-flex gap-2 align-items-center">
-                        <i class="fa-solid fa-filter text-gray"></i>
-                        <form method="get" class="d-inline">
-                            <select name="type" class="form-select bg-light-blue" onchange="this.form.submit()">
-                                <option value="">Choose type</option>
-                                <option value="base" {% if type == 'base' %}selected{% endif %}>Base Plan</option>
-                                <option value="add_on" {% if type_filter == 'add_on' %}selected{% endif %}>Add-On Plan
-                                </option>
-                            </select>
-                        </form>
-                    </div>
-                    <div>
-                        <form method="get" class="d-inline">
-                            <select name="status" class="form-select bg-light-blue" onchange="this.form.submit()">
-                                <option value="">Choose Status</option>
-                                <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
-                                <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive
-                                </option>
-                            </select>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <!-- Create Plan Modal -->
-            <div id="createplan" class="modal fade">
-                <div class="modal-dialog modal-xl">
-                    <div class="modal-content">
-
-                        <!-- Modal Header -->
-                        <div class="modal-header">
-                            <h4 class="modal-title">Create Plan</h4>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-
-                        <div class="modal-body">
-                            <form method="post" action="{% url 'plan:create_plan' %}">
-                                {% csrf_token %}
-
-                                <div class="row g-4">
-                                    <div class="col-md-3 col-12">
-                                        <div class="form-group mb-3">
-                                            <label for="name" class="form-label mb-3">Plan Name</label>
-                                            <input type="text" class="form-control bg-light-blue" name="name" required>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-3 col-12">
-                                        <div class="form-group mb-3">
-                                            <label for="plan_type" class="form-label mb-3">Plan Type</label>
-                                            <select name="plan_type" class="form-select bg-light-blue" required>
-                                                <option value="base">Base Plan</option>
-                                                <option value="add_on">Add-On Plan</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-3 col-12">
-                                        <div class="form-group mb-3">
-                                            <label for="price" class="form-label mb-3">Price</label>
-                                            <input type="number" step="0.01" name="price"
-                                                class="form-control bg-light-blue" required>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-3 col-12">
-                                        <div class="form-group mb-3">
-                                            <label for="duration_days" class="form-label mb-3">Plan Duration
-                                                (Days)</label>
-                                            <input type="number" name="duration_days" class="form-control bg-light-blue"
-                                                required>
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-12 col-12">
-                                        <div class="form-group mb-5">
-                                            <label for="description" class="form-label mb-3">Description</label>
-                                            <textarea name="description" class="form-control bg-light-blue"
-                                                required></textarea>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="d-flex justify-content-end gap-3">
-                                    <button type="button" class="btn btn-secondary"
-                                        data-bs-dismiss="modal">Cancel</button>
-                                    <button type="submit" class="btn btn-primary">Create Plan</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!--Success  Modal-->
-
-            <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-md modal-dialog-centered">
-                    <div class="modal-content text-center p-3">
-                        <div class="d-flex justify-content-center">
-                            <div class="success-modal-round mb-3">
-                                <i class="fa-regular fa-circle-check"></i>
-                            </div>
-                        </div>
-                        <div class="success-text mb-3">
-                            <h3 class="text-success">Success!!!</h3>
-                        </div>
-                        <div class="success-content">
-                            <h6 class="text-gray mb-3">Plan Created Successfully</h6>
-                            <button type="button" class="btn btn-success okbtn" data-bs-dismiss="modal">OK</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {% for plan in plans %}
-            <!-- Deactivate (Delete) Modal -->
-            <div class="modal fade" id="Deleteplan{{ plan.id }}" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-md modal-dialog-centered">
-                    <div class="modal-content text-center p-3">
-                        <div class="d-flex justify-content-center">
-                            <div class="danger-modal-round mb-3">
-                                <i class="fa-solid fa-user-xmark"></i>
-                            </div>
-                        </div>
-                        <div class="danger-text mb-3">
-                            <h3 class="text-danger">Deactivating Plan?</h3>
-                        </div>
-                        <div class="danger-content">
-                            <h6 class="text-gray mb-3">
-                                This will <span class="fw-bold">Deactivate</span> the plan
-                                <span class="fw-bold">{{ plan.name }}</span>
-                            </h6>
-
-                            <!-- ✅ Deactivate Form -->
-                            <form method="post" action="{% url 'plan:delete_plan' plan.id %}">
-                                {% csrf_token %}
-                                <div class="justify-content-center mt-3 d-flex gap-3">
-                                    <button type="button" class="btn btn-secondary"
-                                        data-bs-dismiss="modal">Cancel</button>
-                                    <button type="submit" class="btn btn-danger">Deactivate</button>
-                                </div>
-                            </form>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Edit Plan Modal -->
-            <div id="Editplan{{ plan.id }}" class="modal fade">
-                <div class="modal-dialog modal-xl">
-                    <div class="modal-content">
-
-                        <!-- Modal Header -->
-                        <div class="modal-header">
-                            <h4 class="modal-title">Edit Plan</h4>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-
-                        <div class="modal-body">
-                            <form method="post" action="{% url 'plan:update_plan' plan.id %}">
-                                {% csrf_token %}
-
-                                <div class="row g-4">
-                                    <div class="col-md-3 col-12">
-                                        <div class="form-group mb-3">
-                                            <label for="name" class="form-label mb-3">Plan Name</label>
-                                            <input type="text" name="name" value="{{ plan.name }}"
-                                                class="form-control bg-light-blue" required>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-3 col-12">
-                                        <div class="form-group mb-3">
-                                            <label for="plan_type" class="form-label mb-3">Plan Type</label>
-                                            <select name="plan_type" class="form-select bg-light-blue" required>
-                                                <option value="base" {% if plan.plan_type == 'base' %}selected{% endif %}>
-                                                    Base</option>
-                                                <option value="add_on" {% if plan.plan_type == 'add_on' %}selected{% endif %}>Add-On</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-3 col-12">
-                                        <div class="form-group mb-3">
-                                            <label for="price" class="form-label mb-3">Price</label>
-                                            <input type="number" name="price" step="0.01" value="{{ plan.price }}"
-                                                class="form-control bg-light-blue" required>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-3 col-12">
-                                        <div class="form-group mb-3">
-                                            <label for="duration_days" class="form-label mb-3">Plan Duration
-                                                (Days)</label>
-                                            <input type="number" name="duration_days" value="{{ plan.duration_days }}"
-                                                class="form-control bg-light-blue" required>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-12 col-12">
-                                        <div class="form-group mb-5">
-                                            <label for="description" class="form-label mb-3">Description</label>
-                                            <textarea name="description" class="form-control bg-light-blue"
-                                                required>{{ plan.description }}</textarea>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="d-flex justify-content-end gap-3">
-                                    <button type="button" class="btn btn-secondary"
-                                        data-bs-dismiss="modal">Cancel</button>
-                                    <button type="submit" class="btn btn-primary">Update Plan</button>
-                                </div>
-                            </form>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-
-            <!--Table Section-->
-            <div class="table-responsive">
-                <table id="PaymentManagementTable" class="display mt-3 table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Plan Name</th>
-                            <th>Plan Type</th>
-                            <th>Amount</th>
-                            <th>Plan Duration</th>
-                            <th>Plan Description</th>
-                            <th>Plan Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for plan in plans %}
-                        <tr>
-                            <td>{{ plan.name }}</td>
-                            <td>{{ plan.get_plan_type_display }}</td>
-                            <td>₹{{ plan.price }}</td>
-                            <td>{{ plan.duration_days }} days</td>
-                            <td><span class="text-blue">{{ plan.description }}</span></td>
-                            <td>
-                                {% if plan.status == 'active' %}
-                                <button type="button" class="btn btn-success" data-bs-toggle="modal"
-                                    data-bs-target="#DeactivateModal{{ plan.id }}">Active</button>
-                                {% else %}
-                                <span class="btn btn-danger">Inactive</span>
-                                {% endif %}
-                            </td>
-
-                            <td>
-                                <div class="d-flex">
-                                    <!-- Edit Icon -->
-                                    <i class="fa-solid fa-pen-to-square text-blue ms-3" type="button"
-                                        data-bs-toggle="modal" data-bs-target="#Editplan{{ plan.id }}"></i>
-
-                                    <!-- Delete Icon -->
-                                    <i class="fa-solid fa-trash text-danger ms-3" type="button" data-bs-toggle="modal"
-                                        data-bs-target="#Deleteplan{{ plan.id }}"></i>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </div>
+    <div class="card border-0 p-4">
+      <h5 class="text-gray mb-3">Plan Lists</h5>
+      <!--Filter Section-->
+      <div class="filter-section d-flex justify-content-between">
+        <form method="get" class="search-filter">
+          <input type="text" name="search" placeholder="Search plans By Name" class="form-control search-box"
+            value="{{ search }}">
+        </form>
+
+        <div class="d-flex gap-2 align-items-center align-items-center">
+          <div class="export-btn">
+            <a href="?export=xlsx{% if status %}&status={{ status }}{% endif %}{% if type %}&type={{ type }}{% endif %}{% if search %}&search={{ search }}{% endif %}"
+              class="btn btn-primary">
+              <i class="fa-solid fa-cloud-arrow-down"></i> Export
+            </a>
+          </div>
+
+          <div class="d-flex gap-2 align-items-center">
+            <i class="fa-solid fa-filter text-gray"></i>
+            <form method="get" class="d-inline">
+              <select name="type" class="form-select bg-light-blue" onchange="this.form.submit()">
+                <option value="">Choose type</option>
+                <option value="base" {% if type == 'base' %}selected{% endif %}>Base Plan</option>
+                <option value="add_on" {% if type_filter == 'add_on' %}selected{% endif %}>Add-On Plan
+                </option>
+              </select>
+            </form>
+          </div>
+          <div>
+            <form method="get" class="d-inline">
+              <select name="status" class="form-select bg-light-blue" onchange="this.form.submit()">
+                <option value="">Choose Status</option>
+                <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+                <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive
+                </option>
+              </select>
+            </form>
+          </div>
+        </div>
+      </div>
+      <!-- Create Plan Modal -->
+      <div id="createplan" class="modal fade" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content p-3">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <h4 class="modal-title">Create Plan</h4>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+              <form method="post" action="{% url 'plan:create_plan' %}" class="plan-form">
+                {% csrf_token %}
+
+                <div class="row g-4">
+                  <div class="col-md-3 col-12">
+                    <div class="form-group mb-3">
+                      <label for="name" class="form-label mb-3">Plan Name</label>
+                      <input type="text" class="form-control bg-light-blue" name="name">
+                    </div>
+                  </div>
+
+                  <div class="col-md-3 col-12">
+                    <div class="form-group mb-3">
+                      <label for="plan_type" class="form-label mb-3">Plan Type</label>
+                      <select name="plan_type" class="form-select bg-light-blue">
+                        <option value="base">Base Plan</option>
+                        <option value="add_on">Add-On Plan</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="col-md-3 col-12">
+                    <div class="form-group mb-3">
+                      <label for="price" class="form-label mb-3">Price</label>
+                      <input type="number" step="0.01" name="price" class="form-control bg-light-blue">
+                    </div>
+                  </div>
+
+                  <div class="col-md-3 col-12">
+                    <div class="form-group mb-3">
+                      <label for="duration_days" class="form-label mb-3">Plan Duration
+                        (Days)</label>
+                      <input type="number" name="duration_days" class="form-control bg-light-blue">
+                    </div>
+                  </div>
+
+                </div>
+
+                <div class="row">
+                  <div class="col-md-12 col-12">
+                    <div class="form-group mb-5">
+                      <label for="description" class="form-label mb-3">Description</label>
+                      <textarea name="description" class="form-control bg-light-blue"></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-primary">Create Plan</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Success Modal -->
+      <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+          <div class="modal-content text-center p-3">
+            <div class="d-flex justify-content-center">
+              <div class="success-modal-round mb-1">
+                <i class="fa-regular fa-circle-check"></i>
+              </div>
+            </div>
+            <div class="success-text mb-1">
+              <h3 class="text-success">Success!!!</h3>
+            </div>
+            <div class="success-content">
+              <h6 id="successMessage" class="text-gray mb-3"></h6>
+              <button type="button" class="btn btn-success okbtn" data-bs-dismiss="modal">OK</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+
+      {% for plan in plans %}
+      <!-- Deactivate (Delete) Modal -->
+      <div class="modal fade" id="Deleteplan{{ plan.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+          <div class="modal-content text-center p-3">
+            <div class="d-flex justify-content-center">
+              <div class="danger-modal-round mb-3">
+                <i class="fa-solid fa-user-xmark"></i>
+              </div>
+            </div>
+            <div class="danger-text mb-3">
+              <h3 class="text-danger">Deactivating Plan?</h3>
+            </div>
+            <div class="danger-content">
+              <h6 class="text-gray mb-3">
+                This will <span class="fw-bold">Deactivate</span> the plan
+                <span class="fw-bold">{{ plan.name }}</span>
+              </h6>
+
+              <!-- Deactivate Form -->
+              <form method="post" action="{% url 'plan:delete_plan' plan.id %}">
+                {% csrf_token %}
+                <div class="justify-content-center mt-3 d-flex gap-3">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-danger">Deactivate</button>
+                </div>
+              </form>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Plan Modal -->
+      <div id="Editplan{{ plan.id }}" class="modal fade" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+          <div class="modal-content p-3">
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <h4 class="modal-title">Edit Plan</h4>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+              <form method="post" action="{% url 'plan:update_plan' plan.id %}" class="plan-form">
+                {% csrf_token %}
+
+                <div class="row g-4">
+                  <div class="col-md-3 col-12">
+                    <div class="form-group mb-3">
+                      <label for="name" class="form-label mb-3">Plan Name</label>
+                      <input type="text" name="name" value="{{ plan.name }}" class="form-control bg-light-blue">
+                    </div>
+                  </div>
+
+                  <div class="col-md-3 col-12">
+                    <div class="form-group mb-3">
+                      <label for="plan_type" class="form-label mb-3">Plan Type</label>
+                      <select name="plan_type" class="form-select bg-light-blue" required>
+                        <option value="base" {% if plan.plan_type == 'base' %}selected{% endif %}>
+                          Base</option>
+                        <option value="add_on" {% if plan.plan_type == 'add_on' %}selected{% endif %}>Add-On</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="col-md-3 col-12">
+                    <div class="form-group mb-3">
+                      <label for="price" class="form-label mb-3">Price</label>
+                      <input type="number" name="price" step="0.01" value="{{ plan.price }}"
+                        class="form-control bg-light-blue">
+                    </div>
+                  </div>
+
+                  <div class="col-md-3 col-12">
+                    <div class="form-group mb-3">
+                      <label for="duration_days" class="form-label mb-3">Plan Duration
+                        (Days)</label>
+                      <input type="number" name="duration_days" value="{{ plan.duration_days }}"
+                        class="form-control bg-light-blue">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-12 col-12">
+                    <div class="form-group mb-5">
+                      <label for="description" class="form-label mb-3">Description</label>
+                      <textarea name="description" class="form-control bg-light-blue">{{ plan.description }}</textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-primary">Update Plan</button>
+                </div>
+              </form>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+
+      <!--Table Section-->
+      <div class="table-responsive">
+        <table id="PaymentManagementTable" class="display mt-3 table-bordered">
+          <thead>
+            <tr>
+              <th>Plan Name</th>
+              <th>Plan Type</th>
+              <th>Amount</th>
+              <th>Plan Duration</th>
+              <th>Plan Description</th>
+              <th>Plan Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for plan in plans %}
+            <tr>
+              <td>{{ plan.name }}</td>
+              <td>{{ plan.get_plan_type_display }}</td>
+              <td>₹{{ plan.price }}</td>
+              <td>{{ plan.duration_days }} days</td>
+              <td><span class="text-blue">{{ plan.description }}</span></td>
+              <td>
+                {% if plan.status == 'active' %}
+                <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                  data-bs-target="#DeactivateModal{{ plan.id }}">Active</button>
+                {% else %}
+                <span class="btn btn-danger">Inactive</span>
+                {% endif %}
+              </td>
+
+              <td>
+                <div class="d-flex">
+                  <!-- Edit Icon -->
+                  <i class="fa-solid fa-pen-to-square text-blue ms-3" type="button" data-bs-toggle="modal"
+                    data-bs-target="#Editplan{{ plan.id }}"></i>
+
+                  <!-- Delete Icon -->
+                  <i class="fa-solid fa-trash text-danger ms-3" type="button" data-bs-toggle="modal"
+                    data-bs-target="#Deleteplan{{ plan.id }}"></i>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}

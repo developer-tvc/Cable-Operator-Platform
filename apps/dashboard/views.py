@@ -1,3 +1,7 @@
+from django.db.models import Count, Q
+from datetime import date, timedelta
+from calendar import monthrange
+from django.utils.timezone import now
 from django.db.models import Count, Q, Prefetch
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
@@ -35,15 +39,19 @@ class AdminLoginView(View):
     def post(self, request):
         form = AdminLoginForm(request.POST)
         if form.is_valid():
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
-            user = authenticate(request, email=email, password=password)
-            if user is not None:
+            # Credentials already validated in form's clean()
+            user = authenticate(
+                request,
+                username=form.cleaned_data['email'],  # Or just email
+                password=form.cleaned_data['password']
+            )
+            if user:
                 login(request, user)
                 request.session['just_logged_in'] = True
                 return redirect('dashboard:admin_dashboard')
-            else:
-                messages.error(request, 'Invalid email or password.')
+        else:
+            messages.error(request, 'Login failed. Please correct the errors below.')
+
         return render(request, self.template_name, {'form': form})
     
 # Admin Logout View    
@@ -51,7 +59,7 @@ class AdminLogoutView(View):
     def get(self, request):
         logout(request)
         return redirect('dashboard:admin_login')
-
+        
 # Mixins
 class CustomerSearchFilterMixin:
     def apply_filters(self, request, queryset):
@@ -364,7 +372,7 @@ ListView
             ]
             return self.export_as_excel(request, excel_data, headers)
 
-        # ✅ Fix: set object_list so get_context_data works
+        # Fix: set object_list so get_context_data works
         self.object_list = customers_qs
         context = self.get_context_data()
         context.update({
@@ -523,40 +531,9 @@ class DeleteCustomerView(LoginRequiredMixin, View):
     def post(self, request, pk):
         customer = Customer.objects.filter(pk=pk, status='active').first()
         if customer:
-            customer.soft_delete()
-            messages.success(request, "Customer deleted successfully.")
+            customer.deactivate()
+            messages.success(request, "Customer deactivated successfully.")
         else:
-            messages.error(request, "Customer not found or already deleted.")
+            messages.error(request, "Customer not found or already inactive.")
         return redirect('dashboard:customer_list')
 
-
-def customer_list(request):
-    search_query = request.GET.get('search')
-    plan_id = request.GET.get('plan')
-    status = request.GET.get('status')
-
-    customers = Customer.objects.all()
-
-    if search_query:
-        customers = customers.filter(
-            Q(name__icontains=search_query) |
-            Q(customer_id__icontains=search_query) |
-            Q(mobile__icontains=search_query)
-        )
-
-    if status:
-        customers = customers.filter(status=status)
-
-    if plan_id:
-        active_subs = Subscription.objects.filter(plan_id=plan_id, is_active=True)
-        customers = customers.filter(id__in=active_subs.values_list('customer_id', flat=True))
-
-    plans = Plan.objects.all()
-
-    context = {
-        'customers': customers,
-        'plans': plans,
-        'selected_plan': plan_id,
-        'selected_status': status,
-    }
-    return render(request, 'dashboard/Customer-Management.html', context)
