@@ -531,7 +531,7 @@ class DeleteCustomerView(LoginRequiredMixin, View):
     def post(self, request, pk):
         customer = Customer.objects.filter(pk=pk, status='active').first()
         if customer:
-            customer.deactivate()
+            customer.soft_delete()
             messages.success(request, "Customer deactivated successfully.")
         else:
             messages.error(request, "Customer not found or already inactive.")
