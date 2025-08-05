@@ -253,6 +253,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
+
 /* ---------- LOAD CUSTOMER DATA FOR EDIT ---------- */
 async function loadCustomerData(customerId) {
   try {
@@ -286,7 +287,7 @@ async function loadCustomerData(customerId) {
 
     if (Array.isArray(data.addon_plan_ids)) {
       for (let option of addonSelect.options) {
-        if (data.add_on_plan.includes(parseInt(option.value))) {
+        if (data.addon_plan_ids.includes(parseInt(option.value))) {
           option.selected = true;
         }
       }
@@ -350,12 +351,6 @@ function validateCustomerCreateForm(form) {
   if (!baseSelected && !addonSelected) {
     showError(basePlan, "Select at least one plan.");
     showError(addOnPlan, "Select at least one plan.");
-    isValid = false;
-  }
-
-  if (baseSelected && addonSelected) {
-    showError(basePlan, "Choose only one: base plan or add-on plans.");
-    showError(addOnPlan, "Choose only one: base plan or add-on plans.");
     isValid = false;
   }
 
