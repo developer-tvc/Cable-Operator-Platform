@@ -136,6 +136,9 @@ div.dt-container.dt-empty-footer tbody > tr:last-child > * {
   border-bottom: none;
 }
 
+table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
+    padding: 18px 12px !important;
+}
 .select2-container--default.select2-container--focus
   .select2-selection--multiple {
   border: solid #dee2e6 1px !important;

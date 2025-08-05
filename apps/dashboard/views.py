@@ -13,10 +13,9 @@ from datetime import date, timedelta
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
-from django.views.generic import ListView,DeleteView
+from django.views.generic import ListView
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404
-from urllib.parse import quote_plus
 from django.utils.timezone import now
 from apps.accounts.models import Customer
 from apps.payments.models import Payment
@@ -27,6 +26,10 @@ from .forms import AdminLoginForm
 from apps.subscriptions.models import Subscription
 from apps.plans.models import Plan
 from apps.dashboard.utils import generate_customer_qr
+import razorpay
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from decimal import Decimal,ROUND_HALF_UP
 
 # Admin Login View
 class AdminLoginView(View):
@@ -236,6 +239,73 @@ class AdminDashboardView(LoginRequiredMixin, CustomerSearchFilterMixin, Customer
         })
 
 # Create Customer View
+# class CreateCustomerView(LoginRequiredMixin, View):
+#     login_url = reverse_lazy('dashboard:admin_login')
+#     template_name = 'dashboard/Customer-Management.html'
+#
+#     def get(self, request):
+#         form = CustomerForm()
+#         customers = Customer.objects.all()
+#         base_plans = Plan.objects.filter(plan_type='base')
+#         add_on_plans = Plan.objects.filter(plan_type='add_on')
+#
+#         return render(request, self.template_name, {
+#             'form': form,
+#             'customers': customers,
+#             'base_plans': base_plans,
+#             'add_on_plans': add_on_plans,
+#         })
+#
+#     def post(self, request):
+#         form = CustomerForm(request.POST)
+#         customers = Customer.objects.all()
+#
+#         print("POST DATA:", request.POST)
+#         print("Is form valid?", form.is_valid())
+#         print("Form errors:", form.errors)
+#
+#         if form.is_valid():
+#             customer = form.save(commit=False)
+#             customer.save()
+#             form.save_m2m()
+#             print("Customer created:", customer)
+#
+#             base = form.cleaned_data.get('base_plan')
+#             addons = form.cleaned_data.get('add_on_plan')
+#             today = date.today()
+#
+#             if base:
+#                 Subscription.objects.create(
+#                     customer=customer,
+#                     plan=base,
+#                     start_date=today,
+#                     end_date=today + timedelta(days=base.duration_days)
+#                 )
+#             if addons:
+#                 for plan in addons:
+#                     Subscription.objects.create(
+#                         customer=customer,
+#                         plan=plan,
+#                         start_date=today,
+#                         end_date=today + timedelta(days=plan.duration_days)
+#                     )
+#
+#             generate_customer_qr(customer, request)
+#
+#             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+#                 return JsonResponse({'success': True, 'message': f"Customer {customer.customer_id} created."})
+#             messages.success(request, f"Customer {customer.customer_id} created.")
+#             return redirect('dashboard:customer_list')
+#
+#         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+#             return JsonResponse({'success': False, 'message': 'Invalid form data.'})
+#         messages.error(request, "Failed to create customer.")
+#         return render(request, self.template_name, {
+#             'form': form,
+#             'customers': customers,
+#         })
+
+
 class CreateCustomerView(LoginRequiredMixin, View):
     login_url = reverse_lazy('dashboard:admin_login')
     template_name = 'dashboard/Customer-Management.html'
@@ -257,45 +327,62 @@ class CreateCustomerView(LoginRequiredMixin, View):
         form = CustomerForm(request.POST)
         customers = Customer.objects.all()
 
-        print("POST DATA:", request.POST)
-        print("Is form valid?", form.is_valid())
-        print("Form errors:", form.errors)
-
         if form.is_valid():
             customer = form.save(commit=False)
             customer.save()
             form.save_m2m()
-            print("Customer created:", customer)
 
             base = form.cleaned_data.get('base_plan')
             addons = form.cleaned_data.get('add_on_plan')
-            today = date.today()
+            start_date = date.today()
 
+            # Total revised amount (entered by user)
+            revised_amount_input = request.POST.get('revised_amount')
+            revised_amount = Decimal(revised_amount_input) if revised_amount_input else None
+
+            # Collect all selected plans
+            selected_plans = []
             if base:
+                selected_plans.append(base)
+            if addons:
+                selected_plans.extend(addons)
+
+            # Total of original prices
+            total_original = sum(plan.price for plan in selected_plans)
+
+            # Save subscriptions
+            for plan in selected_plans:
+                original_price = plan.price
+                duration = plan.duration_days
+                end_date = start_date + timedelta(days=duration)
+
+                # Proportionally distribute revised amount
+                if revised_amount is not None and total_original:
+                    proportion = Decimal(original_price) / Decimal(total_original)
+                    revised_plan_amount = (revised_amount * proportion).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                else:
+                    revised_plan_amount = original_price
+
                 Subscription.objects.create(
                     customer=customer,
-                    plan=base,
-                    start_date=today,
-                    end_date=today + timedelta(days=base.duration_days)
+                    plan=plan,
+                    start_date=start_date,
+                    end_date=end_date,
+                    revised_amount=revised_plan_amount
                 )
-            if addons:
-                for plan in addons:
-                    Subscription.objects.create(
-                        customer=customer,
-                        plan=plan,
-                        start_date=today,
-                        end_date=today + timedelta(days=plan.duration_days)
-                    )
 
             generate_customer_qr(customer, request)
 
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({'success': True, 'message': f"Customer {customer.customer_id} created."})
+
             messages.success(request, f"Customer {customer.customer_id} created.")
             return redirect('dashboard:customer_list')
 
+        # On error
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({'success': False, 'message': 'Invalid form data.'})
+
         messages.error(request, "Failed to create customer.")
         return render(request, self.template_name, {
             'form': form,
@@ -384,27 +471,72 @@ ListView
         })
         return self.render_to_response(context)
 
-class GPayRedirectView(View):
+class RazorpayPaymentView(View):
     def get(self, request, customer_id):
         customer = get_object_or_404(Customer, customer_id=customer_id)
-
         today = now().date()
         active_subscriptions = customer.subscriptions.filter(end_date__gte=today)
+
         due_amount = sum(sub.plan.price for sub in active_subscriptions)
-
         if due_amount <= 0:
-            return render(request, "dashboard/no_due.html", {"customer": customer})
+            return render(request, "payments/no_dues.html", {"customer": customer})
 
-        upi_url = (
-            f"upi://pay?"
-            f"pa="
-            f"&pn={quote_plus('Cable Operator')}"
-            f"&am={due_amount:.2f}"
-            f"&cu=INR"
-            f"&tn=Payment+for+{quote_plus(customer.name)}"
-        )
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        payment_order = client.order.create(dict(
+            amount=int(due_amount * 100),  # Razorpay uses paise
+            currency='INR',
+            payment_capture='1'
+        ))
 
-        return render(request, "payments/payments.html", {"upi_url": upi_url})
+        context = {
+            "customer": customer,
+            "razorpay_key": settings.RAZORPAY_KEY_ID,
+            "order_id": payment_order['id'],
+            "amount": due_amount,
+            "currency": "INR",
+            "callback_url": request.build_absolute_uri("/payments/verify/"),
+        }
+        return render(request, "payments/razorpay_checkout.html", context)
+
+@method_decorator(csrf_exempt, name='dispatch')
+class RazorpayVerifyPaymentView(View):
+    def post(self, request):
+        try:
+            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+            data = {
+                "razorpay_order_id": request.POST["razorpay_order_id"],
+                "razorpay_payment_id": request.POST["razorpay_payment_id"],
+                "razorpay_signature": request.POST["razorpay_signature"]
+            }
+
+            client.utility.verify_payment_signature(data)
+
+            customer = Customer.objects.get(customer_id=request.POST["customer_id"])
+            amount = 0
+            today = now().date()
+            for sub in customer.subscriptions.filter(end_date__gte=today):
+                amount += sub.plan.price
+
+            payment = Payment.objects.create(
+                customer=customer,
+                amount=amount,
+                payment_date=today,
+                payment_method="Razorpay",
+                upi_transaction_id=request.POST["razorpay_payment_id"]
+            )
+
+            return render(request, "payments/payment-success.html", {
+                "payment": payment,
+                "payment_method": "Razorpay",
+                "next_due_date": today.replace(month=today.month + 1)  # example logic
+            })
+
+        except Exception as e:
+            return render(request, "payments/unsuccessfull.html", {
+                "payment": None,
+                "payment_method": "Razorpay"
+            })
 
 class UpdateCustomerView(LoginRequiredMixin, View):
     login_url = reverse_lazy('dashboard:admin_login')
