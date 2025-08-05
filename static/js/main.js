@@ -29,8 +29,62 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  /* ---------- BLOCK INVALID NUMBER INPUT (PRICE & DURATION) ---------- */
+  function blockInvalidInput(e, min) {
+    const input = e.target;
+    const futureValue = input.value + e.key;
+
+    // Allow essential keys
+    if (
+      ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key) ||
+      e.ctrlKey || e.metaKey
+    ) return;
+
+    const numericValue = parseInt(futureValue);
+
+    if (JSON.stringify(numericValue).length === JSON.stringify(min).length) {
+      if (!/^\d$/.test(e.key)) {
+        e.preventDefault();
+        return;
+      }
+
+      if (!isNaN(numericValue) && numericValue < min) {
+        e.preventDefault();
+      }
+    }
+  }
+
+  /* ---------- FOCUSOUT VALIDATION (Fallback for typing/pasting/etc) ---------- */
+  function validateOnBlur(input, min) {
+    const val = parseInt(input.value.trim());
+    if (isNaN(val) || val < min) {
+      input.value = "";
+    }
+  }
+
   /* ---------- PLAN FORM SUBMISSION ---------- */
   document.querySelectorAll('.plan-form').forEach(form => {
+    const priceInput = form.querySelector('[name="price"]');
+    const durationInput = form.querySelector('[name="duration_days"]');
+
+    if (priceInput) {
+      priceInput.addEventListener('keypress', function (e) {
+        blockInvalidInput(e, 1);
+      });
+      priceInput.addEventListener('focusout', function () {
+        validateOnBlur(priceInput, 1);
+      });
+    }
+
+    if (durationInput) {
+      durationInput.addEventListener('keypress', function (e) {
+        blockInvalidInput(e, 30);
+      });
+      durationInput.addEventListener('focusout', function () {
+        validateOnBlur(durationInput, 30);
+      });
+    }
+
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
       if (!validatePlanForm(form)) return;
@@ -82,6 +136,36 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   });
+
+  /* ---------- RESET PLAN FORM ON MODAL CLOSE ---------- */
+  const planModal = document.getElementById('createplan');
+  const planForm = planModal?.querySelector('form');
+
+  if (planModal && planForm) {
+    planModal.addEventListener('hidden.bs.modal', function () {
+      planForm.reset();
+
+      planForm.querySelectorAll('.text-danger').forEach(el => el.remove());
+      $(planForm).find('select').val('').trigger('change');
+    });
+  }
+
+  /* ---------- RESET EDIT PLAN FORM ON MODAL CLOSE ---------- */
+  document.querySelectorAll('[id^="Editplan"]').forEach(modal => {
+    const editForm = modal.querySelector('form');
+
+    if (editForm) {
+      modal.addEventListener('hidden.bs.modal', function () {
+        editForm.reset(); // Reset form fields to default
+
+        // Remove validation messages
+        editForm.querySelectorAll('.text-danger').forEach(el => el.remove());
+        
+      });
+    }
+  });
+
+
 
   /* ---------- CREATE CUSTOMER MODAL ---------- */
   $('#createUser').on('shown.bs.modal', function () {
@@ -309,18 +393,21 @@ function validateCustomerCreateForm(form) {
   let isValid = true;
   form.querySelectorAll('.text-danger').forEach(el => el.remove());
 
-  const requiredFields = [
-    { name: "name", message: "Customer name is required" },
-    { name: "address", message: "Address is required" }
-  ];
+  const nameField = form.querySelector('[name="name"]');
+  const nameValue = nameField?.value.trim();
+  if (!nameValue) {
+    showError(nameField, "Customer name is required");
+    isValid = false;
+  } else if (!/^[a-zA-Z\s]{3,50}$/.test(nameValue)) {
+    showError(nameField, "Name must be 3-50 letters only (no numbers or special characters)");
+    isValid = false;
+  }
 
-  requiredFields.forEach(({ name, message }) => {
-    const field = form.querySelector(`[name="${name}"]`);
-    if (!field || !field.value.trim()) {
-      showError(field, message);
-      isValid = false;
-    }
-  });
+  const addressField = form.querySelector('[name="address"]');
+  if (!addressField?.value.trim()) {
+    showError(addressField, "Address is required");
+    isValid = false;
+  }
 
   const mobileField = form.querySelector('[name="mobile"]');
   const mobileValue = mobileField?.value.trim();
@@ -357,26 +444,79 @@ function validateCustomerCreateForm(form) {
   return isValid;
 }
 
+
 function validatePlanForm(form) {
   let isValid = true;
   form.querySelectorAll('.text-danger').forEach(el => el.remove());
 
   const requiredFields = [
-    { name: "name", message: "Plan name is required" },
-    { name: "plan_type", message: "Plan type is required" },
-    { name: "price", message: "Enter a valid price (0 or more)", numeric: true, min: 0 },
-    { name: "duration_days", message: "Duration must be at least 1 day", numeric: true, min: 1 },
-    { name: "description", message: "Description is required" }
+    {
+      name: "name",
+      message: "Plan name is required",
+      regex: /^[a-zA-Z0-9\s\-_.(),/&:]{3,50}$/,
+      regexMessage: "Plan name must be 3-50 characters and can include letters, numbers, and special characters (- _ . , ( ) / & :)"
+    },
+    {
+      name: "plan_type",
+      message: "Plan type is required",
+      isSelect: true
+    },
+    {
+      name: "price",
+      message: "Enter a valid price (1 or more)",
+      numeric: true,
+      min: 1
+    },
+    {
+      name: "duration_days",
+      message: "Duration must be at least 30 days",
+      numeric: true,
+      min: 30
+    },
+    {
+      name: "description",
+      message: "Description is required",
+      minLength: 5
+    }
   ];
 
-  requiredFields.forEach(({ name, message, numeric, min }) => {
+  requiredFields.forEach(({ name, message, numeric, min, regex, regexMessage, minLength, isSelect }) => {
     const field = form.querySelector(`[name="${name}"]`);
     if (!field) return;
 
     const value = field.value.trim();
-    if (!value || (numeric && (isNaN(value) || Number(value) < min))) {
+
+    if (!value) {
       showError(field, message);
       isValid = false;
+      return;
+    }
+
+    if (numeric) {
+      const num = Number(value);
+      if (isNaN(num) || num < min) {
+        showError(field, message);
+        isValid = false;
+        return;
+      }
+    }
+
+    if (regex && !regex.test(value)) {
+      showError(field, regexMessage || "Invalid format");
+      isValid = false;
+      return;
+    }
+
+    if (minLength && value.length < minLength) {
+      showError(field, `Minimum ${minLength} characters required`);
+      isValid = false;
+      return;
+    }
+
+    if (isSelect && (value === "0" || value === "Select" || value === "")) {
+      showError(field, message);
+      isValid = false;
+      return;
     }
   });
 
@@ -387,5 +527,11 @@ function showError(input, message) {
   const error = document.createElement('div');
   error.className = 'text-danger small mt-1';
   error.textContent = message;
-  input?.parentNode?.appendChild(error);
+
+  const container = input.closest('.form-group, .input-group');
+  if (container) {
+    container.appendChild(error);
+  } else {
+    input.parentNode?.appendChild(error);
+  }
 }

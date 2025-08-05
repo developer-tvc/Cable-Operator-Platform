@@ -20,6 +20,22 @@ class CustomerForm(forms.ModelForm):
         })
     )
 
+    due_amount = forms.DecimalField(
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'id': 'edit_due_amount'}),
+        disabled=True
+    )
+
+    revised_amount = forms.DecimalField(
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'id': 'edit_revised_amount'})
+    )
+
+    start_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control', 'id': 'edit_start_date'})
+    )
+
     class Meta:
         model = Customer
         fields = [

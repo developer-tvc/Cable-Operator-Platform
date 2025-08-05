@@ -463,7 +463,8 @@ class UpdateCustomerView(LoginRequiredMixin, View):
             customer = form.save()
             base_plan = form.cleaned_data.get('base_plan')
             addon_plans = form.cleaned_data.get('add_on_plan')
-            today = date.today()
+            revised_amount = form.cleaned_data.get('revised_amount') or 0
+            start_date = form.cleaned_data.get('start_date') or date.today()
 
             # Clear existing subscriptions
             Subscription.objects.filter(customer=customer).delete()
@@ -473,8 +474,9 @@ class UpdateCustomerView(LoginRequiredMixin, View):
                 Subscription.objects.create(
                     customer=customer,
                     plan=base_plan,
-                    start_date=today,
-                    end_date=today + timedelta(days=base_plan.duration_days)
+                    start_date=start_date,
+                    end_date=start_date + timedelta(days=base_plan.duration_days),
+                    revised_amount=revised_amount
                 )
 
             if addon_plans:
@@ -482,8 +484,9 @@ class UpdateCustomerView(LoginRequiredMixin, View):
                     Subscription.objects.create(
                         customer=customer,
                         plan=addon_plan,
-                        start_date=today,
-                        end_date=today + timedelta(days=addon_plan.duration_days)
+                         start_date=start_date,
+                        end_date=start_date + timedelta(days=addon_plan.duration_days),
+                        revised_amount=revised_amount
                     )
 
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
