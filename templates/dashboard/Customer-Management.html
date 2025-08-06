@@ -148,7 +148,7 @@
                                     <div class="col-md-4 col-12">
                                         <div class="form-group mb-3">
                                             <label for="name" class="form-label mb-3">Start Date</label>
-                                            <input type="date" class="form-control bg-light-blue" name="start_date" required>
+                                            <input type="date" id="start_date"  class="form-control bg-light-blue" name="start_date">
                                         </div>
 
                                     </div>
@@ -264,7 +264,7 @@
                                         <div class="form-group mb-3">
                                             <label for="edit_due_amount" class="form-label mb-1">Due
                                                 Amount</label>
-                                            <input type="text" id="edit_due_amount" class="form-control"
+                                            <input type="text" id="edit_due_amount" class="form-control bg-light-blue"
                                                 name="due_amount" readonly>
                                         </div>
                                     </div>
@@ -273,16 +273,16 @@
                                         <div class="form-group mb-3">
                                             <label for="edit_revised_amount" class="form-label mb-1">Revised
                                                 Amount</label>
-                                            <input type="text" id="edit_revised_amount" class="form-control"
+                                            <input type="text" id="edit_revised_amount" class="form-control bg-light-blue"
                                                 name="revised_amount">
                                         </div>
                                     </div>
 
                                     <div class="col-md-4 col-12">
                                         <div class="form-group mb-3">
-                                            <label for="id_start_date" class="form-label mb-1">Start
+                                            <label for="edit_start_date" class="form-label mb-1">Start
                                                 Date</label>
-                                            <input type="date" id="id_start_date" class="form-control"
+                                            <input type="date" id="edit_start_date" class="form-control bg-light-blue"
                                                 name="start_date">
                                         </div>
                                     </div>
@@ -406,7 +406,7 @@
                                         class="deleteForm">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-link p-0 text-red">
-                                            <i class="fa-solid fa-user-minus text-secondary"></i>
+                                            <i class="fa-solid fa-trash text-danger"></i>
                                         </button>
                                     </form>
                                 </div>

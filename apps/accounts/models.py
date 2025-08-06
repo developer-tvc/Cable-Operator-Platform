@@ -45,7 +45,7 @@ class Customer(models.Model):
 
     customer_id = models.CharField(max_length=10, unique=True, editable=False)
     name = models.CharField(max_length=100)
-    email = models.EmailField(blank=True, null=True)
+    email = models.EmailField(unique=True, blank=True, null=True)
     mobile = models.CharField(max_length=15, unique=True)
     address = models.TextField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')

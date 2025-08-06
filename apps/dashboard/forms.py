@@ -21,6 +21,17 @@ class CustomerForm(forms.ModelForm):
             'data-placeholder': 'Select Add-on Plans'
         })
     )
+    
+    due_amount = forms.DecimalField(
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'id': 'edit_due_amount'}),
+        disabled=True
+    )
+
+    revised_amount = forms.DecimalField(
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'id': 'edit_revised_amount'})
+    )
 
     start_date = forms.DateField(
         required=True,
