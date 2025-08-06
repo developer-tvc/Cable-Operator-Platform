@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     AdminLoginView, AdminLogoutView, AdminDashboardView, CustomerListView, CreateCustomerView, UpdateCustomerView,
-    DeleteCustomerView,PlanInfoView,GPayRedirectView,CustomerDetailView
+    DeleteCustomerView,PlanInfoView,CustomerDetailView,RazorpayPaymentView, RazorpayVerifyPaymentView
 )
 
 app_name = 'dashboard'
@@ -16,6 +16,12 @@ urlpatterns = [
     path('customers/<str:pk>/delete/', DeleteCustomerView.as_view(), name='delete_customer'),
     path('customer/detail/<int:pk>/', CustomerDetailView.as_view(), name='customer_detail'),
     path('customers/plan-info/',  PlanInfoView.as_view(),   name='plan_info'),
-    path('pay/<str:customer_id>/', GPayRedirectView.as_view(), name='gpay_redirect'),
+    # path('pay/<str:customer_id>/', GPayRedirectView.as_view(), name='gpay_redirect'),
+
+    # path("payment/razorpay/<int:customer_id>/", RazorpayPaymentView.as_view(), name="razorpay-payment"),
+    # path("payment/razorpay/success/", razorpay_payment_success, name="razorpay-payment-success"),
+
+    path("pay/<str:customer_id>/", RazorpayPaymentView.as_view(), name="gpay_redirect"),
+    path("payments/verify/", RazorpayVerifyPaymentView.as_view(), name="razorpay-verify"),
 
 ]
