@@ -75,6 +75,14 @@ document.addEventListener("DOMContentLoaded", function () {
         validateOnBlur(priceInput, 1);
       });
     }
+    if (durationInput) {
+      durationInput.addEventListener('keypress', function (e) {
+        blockInvalidInput(e, 30);
+      });
+      durationInput.addEventListener('focusout', function () {
+        validateOnBlur(durationInput, 30);
+      });
+    }
 
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
@@ -137,6 +145,8 @@ document.addEventListener("DOMContentLoaded", function () {
       planForm.reset();
 
       planForm.querySelectorAll('.text-danger').forEach(el => el.remove());
+
+      $(planForm).find('select').val('').trigger('change');
     });
   }
 
@@ -150,7 +160,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Remove validation messages
         editForm.querySelectorAll('.text-danger').forEach(el => el.remove());
-
       });
     }
   });
@@ -447,8 +456,9 @@ function validatePlanForm(form) {
     {
       name: "name",
       message: "Plan name is required",
-      regex: /^.{3,50}$/,
-      regexMessage: "Plan name must be 3-50 characters"
+
+      regex: /^[a-zA-Z0-9\s\-_.(),/&:]{3,50}$/,
+      regexMessage: "Plan name must be 3-50 characters and can include letters, numbers, and special characters (- _ . , ( ) / & :)"
     },
     {
       name: "plan_type",
