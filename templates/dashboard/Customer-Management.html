@@ -46,8 +46,8 @@
                     <form method="get" class="d-inline">
                         <select name="status" class="form-select bg-light-blue" onchange="this.form.submit()">
                             <option value="">Choose Status</option>
-                            <option value="active" {% if status == "active" %}selected{% endif %}>Active</option>
-                            <option value="inactive" {% if status == "inactive" %}selected{% endif %}>Inactive
+                            <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+                            <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive
                             </option>
                         </select>
                     </form>
@@ -148,7 +148,7 @@
                                     <div class="col-md-4 col-12">
                                         <div class="form-group mb-3">
                                             <label for="name" class="form-label mb-3">Start Date</label>
-                                            <input type="date" class="form-control bg-light-blue">
+                                            <input type="date" class="form-control bg-light-blue" name="start_date" required>
                                         </div>
 
                                     </div>
@@ -384,7 +384,15 @@
                                 {% endif %}
                             </td>
                             <td><span class="text-red">₹{{ customer.due_amount }}</span></td>
-                            <td>{{ customer.last_payment|date:"M j, Y" }}</td>
+<!--                            <td>{{ customer.last_payment|date:"M j, Y" }}</td>-->
+                            <td>
+                              {% if last_payment %}
+                                {{ last_payment.payment_date|date:"M j, Y" }}
+                              {% else %}
+                                N/A
+                              {% endif %}
+                            </td>
+
                             <td>
                                 <div class="d-flex justify-content-between">
                                     <a href="{% url 'dashboard:customer_detail' customer.id %}" class="text-gray">

@@ -63,7 +63,7 @@
                                     </div>
 
                                     <div class="d-flex justify-content-start gap-2 mb-3">
-                                        <span class="text-gray fw-bold">Assigned On : </span>
+                                        <span class="text-gray fw-bold">Start Date : </span>
                                         <span>{{ assigned_on|date:"d F Y" }}</span>
                                     </div>
 
@@ -159,45 +159,50 @@
 
                 <div class="table-responsive mt-3">
                     <table id="PaymentHistoryTable" class="table table-bordered table-striped text-center align-middle">
-                        <thead>
+                       <thead>
                             <tr>
-                                <th>Month</th>
                                 <th>Plan Name</th>
-                                <th>Payment Method</th>
-                                <th>Amount</th>
-                                <th>Payment Status</th>
-                                <th>Due Date</th>
-                                <th>Paid On</th>
-
+                                <th>Plan Type</th>
+                                <th>Duration</th>
+                                <th>Original Price</th>
+<!--                                <th>Revised Amount</th>-->
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
+
                         <tbody>
-                            <tr>
-                                <td> <span class="text-blue"> July -2025</span></td>
-                                <td>Premium HD</td>
-                                <td>Card</td>
-                                <td>₹300</td>
-                                <td><span class="active-badge"><i class="fa-solid fa-check"></i> Paid</span></td>
-                                <td>2025/07/31</td>
-                                <td>
-                                    <p class="mb-1">2025/07/25</p>
-                                    <p class="text-small">14:30 PM</p>
-                                </td>
-                            </tr>
+                            {% for subscription in customer.subscriptions.all %}
+                                <tr>
+                                    <td>{{ subscription.plan.name }}</td>
+                                    <td>{{ subscription.plan.get_plan_type_display }}</td>
+                                    <td>{{ subscription.plan.duration_days }} days</td>
+                                    <td>₹{{ subscription.plan.price }}</td>
+<!--                                    <td>-->
+<!--                                        {% if subscription.revised_amount %}-->
+<!--                                            ₹{{ subscription.revised_amount }}-->
+<!--                                        {% else %}-->
+<!--                                            - -->
+<!--                                        {% endif %}-->
+<!--                                    </td>-->
+                                    <td>{{ subscription.start_date|date:"Y/m/d" }}</td>
+                                    <td>{{ subscription.end_date|date:"Y/m/d" }}</td>
+                                    <td>
+                                        {% if subscription.is_active %}
+                                            <span class="active-badge"><i class="fa-solid fa-check"></i> Active</span>
+                                        {% else %}
+                                            <span class="pending-badge"><i class="fa-solid fa-ban"></i> Expired</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="8">No plan history found.</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
 
-
-                            <tr>
-                                <td> <span class="text-blue"> June -2025</span></td>
-                                <td>Premium HD</td>
-                                <td>-</td>
-                                <td> - </td>
-                                <td><span class="pending-badge"><i class="fa-solid fa-ban"></i> Due</span></td>
-                                <td>2025/06/30</td>
-                                <td>
-                                    -
-                                </td>
-                            </tr>
-                        </tbody>
                     </table>
                 </div>
             </div>

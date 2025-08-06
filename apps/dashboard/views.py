@@ -1,7 +1,4 @@
-from django.db.models import Count, Q
-from datetime import date, timedelta
-from calendar import monthrange
-from django.utils.timezone import now
+from dateutil.relativedelta import relativedelta
 from django.db.models import Count, Q, Prefetch
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
@@ -30,6 +27,7 @@ import razorpay
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal,ROUND_HALF_UP
+import calendar
 
 # Admin Login View
 class AdminLoginView(View):
@@ -109,7 +107,11 @@ class CustomerDataMixin:
                 if latest_sub and latest_sub.plan else "No Plan"
             )
             due_amount = latest_sub.plan.price if latest_sub and latest_sub.plan else 0
-            last_payment = latest_sub.start_date if latest_sub else "N/A"
+            last_payment = Payment.objects.filter(customer=customer, status='success').order_by('-payment_date').first()
+            last_payment_display = (
+                last_payment.payment_date.strftime('%d-%b-%Y')
+                if last_payment and last_payment.payment_date else 'N/A'
+            )
 
             customer_data.append({
                 'id': customer.id,
@@ -119,7 +121,7 @@ class CustomerDataMixin:
                 'status': customer.status,
                 'plan_details': plan_details,
                 'due_amount': due_amount,
-                'last_payment': last_payment,
+                'last_payment': last_payment_display,
             })
 
         return customer_data
@@ -238,74 +240,6 @@ class AdminDashboardView(LoginRequiredMixin, CustomerSearchFilterMixin, Customer
             'search': search_query,
         })
 
-# Create Customer View
-# class CreateCustomerView(LoginRequiredMixin, View):
-#     login_url = reverse_lazy('dashboard:admin_login')
-#     template_name = 'dashboard/Customer-Management.html'
-#
-#     def get(self, request):
-#         form = CustomerForm()
-#         customers = Customer.objects.all()
-#         base_plans = Plan.objects.filter(plan_type='base')
-#         add_on_plans = Plan.objects.filter(plan_type='add_on')
-#
-#         return render(request, self.template_name, {
-#             'form': form,
-#             'customers': customers,
-#             'base_plans': base_plans,
-#             'add_on_plans': add_on_plans,
-#         })
-#
-#     def post(self, request):
-#         form = CustomerForm(request.POST)
-#         customers = Customer.objects.all()
-#
-#         print("POST DATA:", request.POST)
-#         print("Is form valid?", form.is_valid())
-#         print("Form errors:", form.errors)
-#
-#         if form.is_valid():
-#             customer = form.save(commit=False)
-#             customer.save()
-#             form.save_m2m()
-#             print("Customer created:", customer)
-#
-#             base = form.cleaned_data.get('base_plan')
-#             addons = form.cleaned_data.get('add_on_plan')
-#             today = date.today()
-#
-#             if base:
-#                 Subscription.objects.create(
-#                     customer=customer,
-#                     plan=base,
-#                     start_date=today,
-#                     end_date=today + timedelta(days=base.duration_days)
-#                 )
-#             if addons:
-#                 for plan in addons:
-#                     Subscription.objects.create(
-#                         customer=customer,
-#                         plan=plan,
-#                         start_date=today,
-#                         end_date=today + timedelta(days=plan.duration_days)
-#                     )
-#
-#             generate_customer_qr(customer, request)
-#
-#             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-#                 return JsonResponse({'success': True, 'message': f"Customer {customer.customer_id} created."})
-#             messages.success(request, f"Customer {customer.customer_id} created.")
-#             return redirect('dashboard:customer_list')
-#
-#         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-#             return JsonResponse({'success': False, 'message': 'Invalid form data.'})
-#         messages.error(request, "Failed to create customer.")
-#         return render(request, self.template_name, {
-#             'form': form,
-#             'customers': customers,
-#         })
-
-
 class CreateCustomerView(LoginRequiredMixin, View):
     login_url = reverse_lazy('dashboard:admin_login')
     template_name = 'dashboard/Customer-Management.html'
@@ -334,29 +268,25 @@ class CreateCustomerView(LoginRequiredMixin, View):
 
             base = form.cleaned_data.get('base_plan')
             addons = form.cleaned_data.get('add_on_plan')
-            start_date = date.today()
+            start_date = form.cleaned_data.get('start_date')
 
-            # Total revised amount (entered by user)
+            # Revised amount from user input
             revised_amount_input = request.POST.get('revised_amount')
             revised_amount = Decimal(revised_amount_input) if revised_amount_input else None
 
-            # Collect all selected plans
             selected_plans = []
             if base:
                 selected_plans.append(base)
             if addons:
                 selected_plans.extend(addons)
 
-            # Total of original prices
             total_original = sum(plan.price for plan in selected_plans)
 
-            # Save subscriptions
             for plan in selected_plans:
                 original_price = plan.price
                 duration = plan.duration_days
                 end_date = start_date + timedelta(days=duration)
 
-                # Proportionally distribute revised amount
                 if revised_amount is not None and total_original:
                     proportion = Decimal(original_price) / Decimal(total_original)
                     revised_plan_amount = (revised_amount * proportion).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
@@ -636,6 +566,7 @@ class UpdateCustomerView(LoginRequiredMixin, View):
         messages.error(request, "Failed to update customer.")
         return redirect('dashboard:customer_list')
 
+
 class CustomerDetailView(LoginRequiredMixin, View):
     template_name = 'dashboard/Customer-Detail.html'
 
@@ -643,18 +574,59 @@ class CustomerDetailView(LoginRequiredMixin, View):
         customer = get_object_or_404(Customer, pk=pk)
         subscriptions = Subscription.objects.filter(customer=customer)
 
-        base_plan = subscriptions.filter(plan__plan_type='base').first()
-        add_ons = subscriptions.filter(plan__plan_type='add_on')
+        base_plan_sub = subscriptions.filter(plan__plan_type='base').first()
+        add_on_subs = subscriptions.filter(plan__plan_type='add_on')
+
+        assigned_on = base_plan_sub.start_date if base_plan_sub else None
+        due_date = assigned_on + relativedelta(months=1) if assigned_on else None
+
+        def get_days_in_month(date):
+            return calendar.monthrange(date.year, date.month)[1]
+
+        def get_monthly_due(sub):
+            price = sub.revised_amount or sub.plan.price
+            duration = sub.plan.duration_days or 30
+            billing_days = get_days_in_month(sub.start_date)
+            monthly_due = (price * Decimal(billing_days) / Decimal(duration)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            return monthly_due
+
+        due_amount = Decimal('0.00')
+
+        if base_plan_sub:
+            due_amount += get_monthly_due(base_plan_sub)
+
+        for addon in add_on_subs:
+            due_amount += get_monthly_due(addon)
 
         context = {
             'customer': customer,
-            'base_plan': base_plan.plan if base_plan else None,
-            'add_ons': [sub.plan for sub in add_ons],
-            'assigned_on': base_plan.start_date if base_plan else None,
-            'due_date': base_plan.end_date if base_plan else None,
-            'due_amount': base_plan.plan.price if base_plan else None,
+            'base_plan': base_plan_sub.plan if base_plan_sub else None,
+            'add_ons': [sub.plan for sub in add_on_subs],
+            'assigned_on': assigned_on,
+            'due_date': due_date,
+            'due_amount': due_amount,
         }
         return render(request, self.template_name, context)
+#
+# class CustomerDetailView(LoginRequiredMixin, View):
+#     template_name = 'dashboard/Customer-Detail.html'
+#
+#     def get(self, request, pk):
+#         customer = get_object_or_404(Customer, pk=pk)
+#         subscriptions = Subscription.objects.filter(customer=customer)
+#
+#         base_plan = subscriptions.filter(plan__plan_type='base').first()
+#         add_ons = subscriptions.filter(plan__plan_type='add_on')
+#
+#         context = {
+#             'customer': customer,
+#             'base_plan': base_plan.plan if base_plan else None,
+#             'add_ons': [sub.plan for sub in add_ons],
+#             'assigned_on': base_plan.start_date if base_plan else None,
+#             'due_date': base_plan.end_date if base_plan else None,
+#             'due_amount': base_plan.plan.price if base_plan else None,
+#         }
+#         return render(request, self.template_name, context)
 
 class DeleteCustomerView(LoginRequiredMixin, View):
     login_url = reverse_lazy('dashboard:admin_login')
