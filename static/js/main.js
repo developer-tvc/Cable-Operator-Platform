@@ -76,15 +76,6 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     }
 
-    if (durationInput) {
-      durationInput.addEventListener('keypress', function (e) {
-        blockInvalidInput(e, 30);
-      });
-      durationInput.addEventListener('focusout', function () {
-        validateOnBlur(durationInput, 30);
-      });
-    }
-
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
       if (!validatePlanForm(form)) return;
@@ -146,7 +137,6 @@ document.addEventListener("DOMContentLoaded", function () {
       planForm.reset();
 
       planForm.querySelectorAll('.text-danger').forEach(el => el.remove());
-      $(planForm).find('select').val('').trigger('change');
     });
   }
 
@@ -160,7 +150,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Remove validation messages
         editForm.querySelectorAll('.text-danger').forEach(el => el.remove());
-        
+
       });
     }
   });
@@ -421,14 +411,18 @@ function validateCustomerCreateForm(form) {
 
   const emailField = form.querySelector('[name="email"]');
   const emailValue = emailField?.value.trim();
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // Regex that allows only lowercase characters for email
+  const lowercaseEmailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+
   if (!emailValue) {
     showError(emailField, "Email is required");
     isValid = false;
-  } else if (!emailRegex.test(emailValue)) {
-    showError(emailField, "Enter a valid email address");
+  } else if (!lowercaseEmailRegex.test(emailValue)) {
+    showError(emailField, "Email must be in lowercase and valid format (e.g., example@domain.com)");
     isValid = false;
   }
+
 
   const basePlan = form.querySelector('[name="base_plan"]');
   const addOnPlan = form.querySelector('[name="add_on_plan"]');
@@ -453,8 +447,8 @@ function validatePlanForm(form) {
     {
       name: "name",
       message: "Plan name is required",
-      regex: /^[a-zA-Z0-9\s\-_.(),/&:]{3,50}$/,
-      regexMessage: "Plan name must be 3-50 characters and can include letters, numbers, and special characters (- _ . , ( ) / & :)"
+      regex: /^.{3,50}$/,
+      regexMessage: "Plan name must be 3-50 characters"
     },
     {
       name: "plan_type",
