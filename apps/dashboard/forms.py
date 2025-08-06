@@ -2,12 +2,14 @@ from django import forms
 from django.contrib.auth import authenticate
 from apps.accounts.models import Customer
 from apps.plans.models import Plan
+from datetime import date
 
 class CustomerForm(forms.ModelForm):
     base_plan = forms.ModelChoiceField(
         queryset=Plan.objects.filter(plan_type='base'),
         required=False,
-        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_base_plan'})
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_base_plan', 'data-placeholder': 'Select Base Plans'})
+
     )
 
     add_on_plan = forms.ModelMultipleChoiceField(
@@ -19,7 +21,7 @@ class CustomerForm(forms.ModelForm):
             'data-placeholder': 'Select Add-on Plans'
         })
     )
-
+    
     due_amount = forms.DecimalField(
         required=False,
         widget=forms.NumberInput(attrs={'class': 'form-control', 'id': 'edit_due_amount'}),
@@ -32,15 +34,19 @@ class CustomerForm(forms.ModelForm):
     )
 
     start_date = forms.DateField(
-        required=False,
-        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control', 'id': 'edit_start_date'})
+        required=True,
+        widget=forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control',
+        }),
+        initial=date.today
     )
 
     class Meta:
         model = Customer
         fields = [
             'name', 'email', 'mobile', 'address',
-            'base_plan', 'add_on_plan',
+            'base_plan', 'add_on_plan', 'start_date'
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),

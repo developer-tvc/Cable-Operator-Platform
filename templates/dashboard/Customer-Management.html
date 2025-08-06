@@ -37,8 +37,8 @@
                         <form method="get" class="d-inline">
                             <select name="plan" class="form-select bg-light-blue" onchange="this.form.submit()">
                                 <option value="">Choose Plan</option>
-                                <option value="base" {% if plan == "base" %}selected{% endif %}>Base Plan</option>
-                                <option value="add_on" {% if plan == "add_on" %}selected{% endif %}>Add-On Plan
+                                <option value="base" {% if plan == 'base' %}selected{% endif %}>Base Plan</option>
+                                <option value="add_on" {% if plan == 'add_on' %}selected{% endif %}>Add-On Plan
                                 </option>
                             </select>
                         </form>
@@ -46,8 +46,8 @@
                     <form method="get" class="d-inline">
                         <select name="status" class="form-select bg-light-blue" onchange="this.form.submit()">
                             <option value="">Choose Status</option>
-                            <option value="active" {% if status == "active" %}selected{% endif %}>Active</option>
-                            <option value="inactive" {% if status == "inactive" %}selected{% endif %}>Inactive
+                            <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+                            <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive
                             </option>
                         </select>
                     </form>
@@ -127,7 +127,7 @@
                                     </div>
                                 </div>
 
-                                <div class="row">
+                                <div class="row mb-3">
                                     <div class="col-md-4 col-12">
                                         <div class="form-group mb-3">
                                             <label for="name" class="form-label mb-3">Due Amount</label>
@@ -140,7 +140,7 @@
                                     <div class="col-md-4 col-12">
                                         <div class="form-group mb-3">
                                             <label for="name" class="form-label mb-3">Revised Amount</label>
-                                            <input type="text" id="revised_amount" class="form-control bg-light-blue">
+                                            <input type="text" class="form-control bg-light-blue" name="revised_amount" id="revised_amount">
                                         </div>
 
                                     </div>
@@ -148,16 +148,19 @@
                                     <div class="col-md-4 col-12">
                                         <div class="form-group mb-3">
                                             <label for="name" class="form-label mb-3">Start Date</label>
-                                            <input type="date" id="start_date" class="form-control bg-light-blue">
+                                            <input type="date" id="start_date"  class="form-control bg-light-blue" name="start_date">
                                         </div>
 
                                     </div>
 
                                 </div>
-                                <div class="d-flex justify-content-end gap-3">
-                                    <a href="{% url 'dashboard:customer_list' %}"
-                                        class="btn btn-secondary">Cancel</a>
-                                    <button type="submit" class="btn btn-primary">Create Customer</button>
+
+                                <div class="d-flex justify-content-end gap-3 mt-3">
+                                    <div>
+                                        <a href="{% url 'dashboard:customer_list' %}"
+                                            class="btn btn-secondary">Cancel</a>
+                                        <button type="submit" class="btn btn-primary">Create Customer</button>
+                                    </div>
                                 </div>
                             </form>
                         </div>
@@ -375,13 +378,21 @@
                             </td>
                             <td>
                                 {% if customer.status == "active" %}
-                                <button class="btn btn-success">Active</button>
+                                <span class="active-badge"><i class="fa-solid fa-check"></i> Active</span>
                                 {% else %}
-                                <button class="btn btn-danger">Inactive</button>
+                                <span class="pending-badge"><i class="fa-solid fa-ban"></i> Inactive</span>
                                 {% endif %}
                             </td>
                             <td><span class="text-red">₹{{ customer.due_amount }}</span></td>
-                            <td>{{ customer.last_payment|date:"M j, Y" }}</td>
+<!--                            <td>{{ customer.last_payment|date:"M j, Y" }}</td>-->
+                            <td>
+                              {% if last_payment %}
+                                {{ last_payment.payment_date|date:"M j, Y" }}
+                              {% else %}
+                                N/A
+                              {% endif %}
+                            </td>
+
                             <td>
                                 <div class="d-flex justify-content-between">
                                     <a href="{% url 'dashboard:customer_detail' customer.id %}" class="text-gray">
