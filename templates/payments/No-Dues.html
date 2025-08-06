@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}No Dues{% endblock %}
+{% block content %}
+<div class="card plan-card">
+    <div class="plan-card-details d-flex justify-content-between align-items-center">
+        <div class="d-flex gap-2 flex-column">
+            <h6 class="text-gray">Plan</h6>
+            <div class="flex gap-2">
+                <h5 class="text-gray">
+                    <i class="fa-solid fa-box"></i> {{ plan.name }}
+                </h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="no-due-footer-container">
+    <div class="last-payment-details mb-3">
+        <p class="fw-bold text-dark mb-0">Last Payment</p>
+        <small class="text-gray">Rs:{{ payment.amount }} on {{ payment.payment_date|date:"F d, Y" }}</small>
+        <p class="text-success fw-bold">via {{ payment_method }}</p>
+    </div>
+
+    <div class="Next-Due-payment-details mb-3">
+        <p class="fw-bold text-dark mb-0">Next Due</p>
+        <small class="text-gray">{{ next_due_date|date:"F d, Y" }}</small>
+    </div>
+
+    <div class="trans-payment-details mb-3">
+        <p class="fw-bold text-dark mb-0">Transaction ID</p>
+        <small class="text-gray">{{ payment.upi_transaction_id }}</small>
+    </div>
+
+    <div class="footer-button">
+        <a href="{{ payment.receipt_file.url }}" class="btn btn-success">
+            <i class="fa-solid fa-download"></i> Download Receipt
+        </a>
+    </div>
+</div>
+{% endblock %}

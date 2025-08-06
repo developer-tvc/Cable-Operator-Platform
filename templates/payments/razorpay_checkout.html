@@ -1,0 +1,57 @@
+<!-- templates/payments/razorpay_checkout.html -->
+{% extends 'base.html' %}
+{% block title %}Pay Now{% endblock %}
+{% block content %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+    const options = {
+        key: "{{ razorpay_key }}",
+        amount: "{{ amount|floatformat:2|add:'0'|floatformat:0 }}00", // in paise
+        currency: "{{ currency }}",
+        name: "Cable Operator",
+        description: "Subscription Payment",
+        order_id: "{{ order_id }}",
+        handler: function (response) {
+            // redirect to verify view with payment data
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ callback_url }}";
+
+            const csrfToken = '{{ csrf_token }}';
+
+            const fields = {
+                "razorpay_payment_id": response.razorpay_payment_id,
+                "razorpay_order_id": response.razorpay_order_id,
+                "razorpay_signature": response.razorpay_signature,
+                "customer_id": "{{ customer.customer_id }}"
+            };
+
+            for (const key in fields) {
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = key;
+                input.value = fields[key];
+                form.appendChild(input);
+            }
+
+            const csrfInput = document.createElement("input");
+            csrfInput.type = "hidden";
+            csrfInput.name = "csrfmiddlewaretoken";
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        },
+        theme: {
+            color: "#3399cc"
+        }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+</script>
+
+<p class="text-center">Redirecting to payment...</p>
+{% endblock %}
