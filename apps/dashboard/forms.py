@@ -33,13 +33,21 @@ class CustomerForm(forms.ModelForm):
         widget=forms.NumberInput(attrs={'class': 'form-control', 'id': 'edit_revised_amount'})
     )
 
+
+    due_amount = forms.DecimalField(
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'id': 'edit_due_amount'}),
+        disabled=True
+    )
+
+    revised_amount = forms.DecimalField(
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'id': 'edit_revised_amount'})
+    )
+
     start_date = forms.DateField(
-        required=True,
-        widget=forms.DateInput(attrs={
-            'type': 'date',
-            'class': 'form-control',
-        }),
-        initial=date.today
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control', 'id': 'edit_start_date'})
     )
 
     class Meta:
