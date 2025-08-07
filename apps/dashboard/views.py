@@ -24,6 +24,7 @@ from apps.subscriptions.models import Subscription
 from apps.plans.models import Plan
 from apps.dashboard.utils import generate_customer_qr
 import razorpay
+import json
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal,ROUND_HALF_UP
@@ -643,4 +644,23 @@ class DeleteCustomerView(LoginRequiredMixin, View):
         else:
             messages.error(request, "Customer not found or already inactive.")
         return redirect('dashboard:customer_list')
+    
+@method_decorator(csrf_exempt, name='dispatch')
+class CheckCustomerDuplicatesView(View):
 
+    @method_decorator(require_POST)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            data = json.loads(request.body)
+            email = data.get('email', '').strip().lower()
+            mobile = data.get('mobile', '').strip()
+
+            return JsonResponse({
+                "email_exists": Customer.objects.filter(email__iexact=email).exists(),
+                "mobile_exists": Customer.objects.filter(mobile=mobile).exists()
+            })
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)

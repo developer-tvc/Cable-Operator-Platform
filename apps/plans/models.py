@@ -10,7 +10,7 @@ class Plan(models.Model):
         ('inactive', 'Inactive'),
     ]
 
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
     price = models.DecimalField(max_digits=8, decimal_places=2)
     duration_days = models.IntegerField(help_text="Duration in days")
