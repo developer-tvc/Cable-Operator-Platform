@@ -62,6 +62,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  /* ---------- NO PAST DATE  ---------- */
+  const today = new Date().toISOString().split("T")[0];
+  const startDateInput = document.getElementById("start_date");
+  const editStartDateInput = document.getElementById("edit_start_date");
+
+  if (startDateInput) {
+    startDateInput.setAttribute("min", today);
+  }
+
+  if (editStartDateInput) {
+    editStartDateInput.setAttribute("min", today);
+  }
+
   /* ---------- PLAN FORM SUBMISSION ---------- */
   document.querySelectorAll('.plan-form').forEach(form => {
     const priceInput = form.querySelector('[name="price"]');
@@ -120,13 +133,82 @@ document.addEventListener("DOMContentLoaded", function () {
           }
 
         } else {
-          alert("Error: " + JSON.stringify(result.errors));
+          // Clear existing field errors
+          form.querySelectorAll('.field-error').forEach(el => el.remove());
+
+          const alertBox = form.querySelector('.planErrorAlert');
+          const alertMessage = form.querySelector('.planErrorMessage');
+
+          let msg = result.message || result.errors || 'Something went wrong';
+
+          if (typeof msg === 'object' && msg !== null) {
+            const messages = [];
+
+            for (const [field, errors] of Object.entries(msg)) {
+              const inputField = form.querySelector(`[name="${field}"]`);
+              if (inputField && Array.isArray(errors)) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'text-danger mt-1 small field-error';
+                errorDiv.textContent = errors[0];
+                inputField.insertAdjacentElement('afterend', errorDiv);
+              }
+
+              if (Array.isArray(errors)) {
+                messages.push(errors[0]);
+              } else {
+                messages.push(errors);
+              }
+            }
+
+            if (alertBox && alertMessage) {
+              alertMessage.textContent = messages.join('\n');
+              alertBox.classList.remove('d-none');
+            }
+          } else {
+            if (alertBox && alertMessage) {
+              alertMessage.textContent = msg;
+              alertBox.classList.remove('d-none');
+            }
+          }
         }
       } catch (err) {
         console.error("Plan form submission error:", err);
       }
     });
   });
+
+  /* ---------- RESET CREATE CUSTOMER FORM ON MODAL CLOSE ---------- */
+  const createCustomerModal = document.getElementById('createUser');
+  const createCustomerForm = createCustomerModal?.querySelector('form');
+
+  if (createCustomerModal && createCustomerForm) {
+    createCustomerModal.addEventListener('hidden.bs.modal', function () {
+      createCustomerForm.reset();
+
+      // Remove validation errors
+      createCustomerForm.querySelectorAll('.text-danger').forEach(el => el.remove());
+
+      // Optionally reset Select2 if used
+      const addOnPlanSelect = createCustomerForm.querySelector('#id_add_on_plan');
+      if (addOnPlanSelect) {
+        $(addOnPlanSelect).val(null).trigger('change');
+      }
+    });
+  }
+
+  /* ---------- RESET EDIT CUSTOMER FORM ON MODAL CLOSE ---------- */
+  const editCustomerModal = document.getElementById('EditUser');
+  const editCustomerForm = editCustomerModal?.querySelector('form');
+
+  if (editCustomerModal && editCustomerForm) {
+    editCustomerModal.addEventListener('hidden.bs.modal', function () {
+      editCustomerForm.reset();
+
+      // Remove validation errors
+      editCustomerForm.querySelectorAll('.text-danger').forEach(el => el.remove());
+    });
+  }
+
 
   /* ---------- RESET PLAN FORM ON MODAL CLOSE ---------- */
   const planModal = document.getElementById('createplan');
@@ -192,10 +274,12 @@ document.addEventListener("DOMContentLoaded", function () {
   const createForm = document.getElementById('createCustomerForm');
   if (createForm) {
     createForm.addEventListener('submit', async function (e) {
-      e.preventDefault(); // prevent default form submit
+      e.preventDefault();
 
-      if (!validateCustomerCreateForm(this)) return;
+      const isValid = await validateCustomerCreateForm(this);
+      if (!isValid) return;
 
+      // proceed with submission
       const formData = new FormData(this);
       const actionUrl = this.getAttribute('action');
 
@@ -211,24 +295,18 @@ document.addEventListener("DOMContentLoaded", function () {
         const result = await response.json();
 
         if (result.success) {
-          // Hide create modal
           const modal = bootstrap.Modal.getInstance(document.getElementById('createUser'));
           if (modal) modal.hide();
 
-          // Reset form
           this.reset();
-
-          // Set success message
           const msgEl = document.getElementById('successMessage');
           if (msgEl) {
             msgEl.textContent = "Customer Created Successfully";
           }
 
-          // Show success modal
           const successModal = new bootstrap.Modal(document.getElementById('successModal'));
           successModal.show();
 
-          // Reload on OK
           document.querySelector('#successModal .okbtn').addEventListener('click', function () {
             window.location.reload();
           }, { once: true });
@@ -242,7 +320,6 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
-
 
   /* ---------- SELECT2 INIT FOR EDIT MODAL ---------- */
   $('#EditUser').on('shown.bs.modal', function () {
@@ -280,7 +357,9 @@ document.addEventListener("DOMContentLoaded", function () {
     editForm.addEventListener('submit', async function (event) {
       event.preventDefault();
 
-      if (!validateCustomerCreateForm(this)) return;
+      const isValid = await validateCustomerCreateForm(this, true);
+      if (!isValid) return;
+
 
       const customerId = document.getElementById('edit_customer_id').value;
       const formData = new FormData(this);
@@ -311,8 +390,48 @@ document.addEventListener("DOMContentLoaded", function () {
           }, { once: true });
         }
         else {
-          alert("Error: " + JSON.stringify(result.errors));
+          const alertBox = document.getElementById('editErrorAlert');
+          const alertMessage = document.getElementById('editErrorMessage');
+
+          // Clear existing field errors
+          document.querySelectorAll('.field-error').forEach(el => el.remove());
+
+          let msg = result.message || result.errors || 'Something went wrong';
+
+          if (typeof msg === 'object' && msg !== null) {
+            const messages = [];
+
+            for (const [field, errors] of Object.entries(msg)) {
+              const inputField = document.getElementById(`edit_${field}`);
+              if (inputField && Array.isArray(errors)) {
+                // Display inline error below field
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'text-danger mt-1 small field-error';
+                errorDiv.textContent = errors[0];
+                inputField.insertAdjacentElement('afterend', errorDiv);
+              }
+
+              // Collect messages for alert box
+              if (Array.isArray(errors)) {
+                messages.push(errors[0]);
+              } else {
+                messages.push(errors);
+              }
+            }
+
+            if (alertBox && alertMessage) {
+              alertMessage.textContent = messages.join('\n');
+              alertBox.classList.remove('d-none');
+            }
+          } else {
+            // Handle plain string error
+            if (alertBox && alertMessage) {
+              alertMessage.textContent = msg;
+              alertBox.classList.remove('d-none');
+            }
+          }
         }
+
       } catch (error) {
         console.error('Update failed:', error);
       }
@@ -371,7 +490,8 @@ async function loadCustomerData(customerId) {
     document.getElementById('edit_revised_amount').value = data.revised_amount || '';
     document.getElementById('edit_start_date').value = data.start_date || '';
 
-    const modal = new bootstrap.Modal(document.getElementById('EditUser'));
+    const modalElement = document.getElementById('EditUser');
+    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
     modal.show();
   } catch (err) {
     console.error('Error loading customer data:', err);
@@ -379,12 +499,21 @@ async function loadCustomerData(customerId) {
 }
 
 /* ---------- VALIDATION HELPERS ---------- */
-function validateCustomerCreateForm(form) {
+async function validateCustomerCreateForm(form, isEdit = false) {
   let isValid = true;
   form.querySelectorAll('.text-danger').forEach(el => el.remove());
 
   const nameField = form.querySelector('[name="name"]');
   const nameValue = nameField?.value.trim();
+  const addressField = form.querySelector('[name="address"]');
+  const mobileField = form.querySelector('[name="mobile"]');
+  const mobileValue = mobileField?.value.trim();
+  const emailField = form.querySelector('[name="email"]');
+  const emailValue = emailField?.value.trim();
+  const basePlan = form.querySelector('[name="base_plan"]');
+  const addOnPlan = form.querySelector('[name="add_on_plan"]');
+  const startDateField = form.querySelector('[name="start_date"]');
+
   if (!nameValue) {
     showError(nameField, "Customer name is required");
     isValid = false;
@@ -393,14 +522,11 @@ function validateCustomerCreateForm(form) {
     isValid = false;
   }
 
-  const addressField = form.querySelector('[name="address"]');
   if (!addressField?.value.trim()) {
     showError(addressField, "Address is required");
     isValid = false;
   }
 
-  const mobileField = form.querySelector('[name="mobile"]');
-  const mobileValue = mobileField?.value.trim();
   if (!mobileValue) {
     showError(mobileField, "Mobile number is required");
     isValid = false;
@@ -409,12 +535,7 @@ function validateCustomerCreateForm(form) {
     isValid = false;
   }
 
-  const emailField = form.querySelector('[name="email"]');
-  const emailValue = emailField?.value.trim();
-
-  // Regex that allows only lowercase characters for email
   const lowercaseEmailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
-
   if (!emailValue) {
     showError(emailField, "Email is required");
     isValid = false;
@@ -423,21 +544,64 @@ function validateCustomerCreateForm(form) {
     isValid = false;
   }
 
-
-  const basePlan = form.querySelector('[name="base_plan"]');
-  const addOnPlan = form.querySelector('[name="add_on_plan"]');
   const baseSelected = basePlan && basePlan.value.trim() !== "";
   const addonSelected = addOnPlan && Array.from(addOnPlan.selectedOptions).length > 0;
-
   if (!baseSelected && !addonSelected) {
     showError(basePlan, "Select at least one plan.");
     showError(addOnPlan, "Select at least one plan.");
     isValid = false;
   }
 
+  if (!startDateField?.value.trim()) {
+    showError(startDateField, "Start date is required");
+    isValid = false;
+  }
+
+  // 🔍 Skip duplicate check if editing
+  if (!isEdit && isValid) {
+    try {
+      const response = await fetch("/dashboard/customer/check-duplicates/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCSRFToken(),
+        },
+        body: JSON.stringify({ name: nameValue, email: emailValue, mobile: mobileValue }),
+      });
+
+      const data = await response.json();
+
+      if (data.name_exists) {
+        showError(nameField, "Customer name already exists");
+        isValid = false;
+      }
+      if (data.email_exists) {
+        showError(emailField, "Email already exists");
+        isValid = false;
+      }
+      if (data.mobile_exists) {
+        showError(mobileField, "Mobile number already exists");
+        isValid = false;
+      }
+
+    } catch (err) {
+      console.error("Error checking duplicates:", err);
+    }
+  }
+
   return isValid;
 }
 
+
+function getCSRFToken() {
+  const name = "csrftoken";
+  const cookies = document.cookie.split(';');
+  for (let cookie of cookies) {
+    let [key, value] = cookie.trim().split('=');
+    if (key === name) return decodeURIComponent(value);
+  }
+  return "";
+}
 
 function validatePlanForm(form) {
   let isValid = true;

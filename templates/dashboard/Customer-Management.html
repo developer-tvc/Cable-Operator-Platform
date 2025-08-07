@@ -96,7 +96,7 @@
                                     <div class="col-md-12 col-12">
                                         <div class="form-group mb-5">
                                             <label for="name" class="form-label mb-3">Address</label>
-                                            <textarea name="address" id=""
+                                            <textarea name="address"
                                                 class="form-control bg-light-blue"></textarea>
                                         </div>
                                     </div>
@@ -169,7 +169,6 @@
             </div>
 
             <!-- Updated Edit Modal -->
-            {% for customer in customers %}
             <div id="EditUser" class="modal fade" tabindex="-1">
                 <div class="modal-dialog modal-xl">
                     <div class="modal-content p-3">
@@ -182,7 +181,7 @@
                             <form id="editCustomerForm" method="post">
                                 {% csrf_token %}
                                 <input type="hidden" name="customer_id" id="edit_customer_id">
-
+                                
                                 <div class="row">
                                     <div class="col-md-4 col-12">
                                         <div class="form-group mb-3">
@@ -299,6 +298,7 @@
                 </div>
             </div>
 
+            {% for customer in customers %}
             <!-- Success Modal -->
             <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-md modal-dialog-centered">
@@ -384,7 +384,7 @@
                                 {% endif %}
                             </td>
                             <td><span class="text-red">₹{{ customer.due_amount }}</span></td>
-<!--                            <td>{{ customer.last_payment|date:"M j, Y" }}</td>-->
+                            <!--<td>{{ customer.last_payment|date:"M j, Y" }}</td>-->
                             <td>
                               {% if last_payment %}
                                 {{ last_payment.payment_date|date:"M j, Y" }}
@@ -399,8 +399,9 @@
                                         <i class="fa-regular fa-eye text-gray"></i>
                                     </a>
                                     <i class="fa-solid fa-pen-to-square text-blue" style="cursor: pointer;"
-                                        data-bs-toggle="modal" data-bs-target="#EditUser"
-                                        onclick="loadCustomerData({{ customer.id }})">
+                                        onclick="loadCustomerData({{ customer.id }})"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#EditUser">
                                     </i>
                                     <form action="{% url 'dashboard:delete_customer' customer.id %}" method="post"
                                         class="deleteForm">
@@ -411,7 +412,6 @@
                                     </form>
                                 </div>
                             </td>
-
                         </tr>
                         {% endfor %}
                     </tbody>
