@@ -28,7 +28,7 @@ import json
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal,ROUND_HALF_UP
-import calendar
+from django.utils import timezone
 
 # Admin Login View
 class AdminLoginView(View):
@@ -94,21 +94,74 @@ class CustomerSearchFilterMixin:
         ]
 
 
+# class CustomerDataMixin:
+#     def get_enriched_customer_data(self, customers):
+#         customer_data = []
+#
+#         for customer in customers:
+#             # Safely fallback if latest_subscriptions not present
+#             subscriptions = getattr(customer, 'latest_subscriptions', customer.subscriptions.all())
+#             latest_sub = next(iter(subscriptions), None)
+#
+#             plan_details = (
+#                 f"{latest_sub.plan.name} - ₹{latest_sub.plan.price}"
+#                 if latest_sub and latest_sub.plan else "No Plan"
+#             )
+#             due_amount = latest_sub.plan.price if latest_sub and latest_sub.plan else 0
+#             last_payment = Payment.objects.filter(customer=customer, status='success').order_by('-payment_date').first()
+#             last_payment_display = (
+#                 last_payment.payment_date.strftime('%d-%b-%Y')
+#                 if last_payment and last_payment.payment_date else 'N/A'
+#             )
+#
+#             customer_data.append({
+#                 'id': customer.id,
+#                 'customer_id': customer.customer_id,
+#                 'name': customer.name,
+#                 'mobile': customer.mobile,
+#                 'status': customer.status,
+#                 'plan_details': plan_details,
+#                 'due_amount': due_amount,
+#                 'last_payment': last_payment_display,
+#             })
+#
+#         return customer_data
+
 class CustomerDataMixin:
     def get_enriched_customer_data(self, customers):
         customer_data = []
 
         for customer in customers:
-            # Safely fallback if latest_subscriptions not present
-            subscriptions = getattr(customer, 'latest_subscriptions', customer.subscriptions.all())
-            latest_sub = next(iter(subscriptions), None)
+            # All active plans (base + add-ons)
+            active_subs = customer.subscriptions.filter(is_active=True).select_related('plan')
+            plan_list = [
+                f"{sub.plan.name} (₹{sub.revised_amount if sub.revised_amount is not None else sub.plan.price})"
+                for sub in active_subs if sub.plan
+            ]
 
+            # Total revised amount from active subscriptions
+            # total_revised_amount = sum(sub.revised_amount for sub in active_subs if sub.revised_amount)
+            # Use revised_amount if available; otherwise fallback to original plan price
+            total_revised_amount = sum(
+                sub.revised_amount if sub.revised_amount is not None else sub.plan.price
+                for sub in active_subs if sub.plan
+            )
+
+            # Fallback for latest subscription if needed
+            latest_sub = next(iter(getattr(customer, 'latest_subscriptions', [])), None)
+
+            # Fallback to single plan details if needed
             plan_details = (
                 f"{latest_sub.plan.name} - ₹{latest_sub.plan.price}"
                 if latest_sub and latest_sub.plan else "No Plan"
             )
-            due_amount = latest_sub.plan.price if latest_sub and latest_sub.plan else 0
-            last_payment = Payment.objects.filter(customer=customer, status='success').order_by('-payment_date').first()
+
+            # Due amount: can use total revised amount instead
+            due_amount = total_revised_amount
+
+            # Last successful payment
+            last_payment = Payment.objects.filter(customer=customer, status='success')\
+                                          .order_by('-payment_date').first()
             last_payment_display = (
                 last_payment.payment_date.strftime('%d-%b-%Y')
                 if last_payment and last_payment.payment_date else 'N/A'
@@ -120,12 +173,14 @@ class CustomerDataMixin:
                 'name': customer.name,
                 'mobile': customer.mobile,
                 'status': customer.status,
-                'plan_details': plan_details,
+                'plan_details': plan_list,
                 'due_amount': due_amount,
                 'last_payment': last_payment_display,
+                'total_revised_amount': total_revised_amount,
             })
 
         return customer_data
+
 
 class ExcelExportMixin:
     def export_as_excel(self, request, data, headers, filename='customers.xlsx'):
@@ -570,7 +625,6 @@ class UpdateCustomerView(LoginRequiredMixin, View):
         messages.error(request, "Failed to update customer.")
         return redirect('dashboard:customer_list')
 
-
 class CustomerDetailView(LoginRequiredMixin, View):
     template_name = 'dashboard/Customer-Detail.html'
 
@@ -584,53 +638,36 @@ class CustomerDetailView(LoginRequiredMixin, View):
         assigned_on = base_plan_sub.start_date if base_plan_sub else None
         due_date = assigned_on + relativedelta(months=1) if assigned_on else None
 
-        def get_days_in_month(date):
-            return calendar.monthrange(date.year, date.month)[1]
-
-        def get_monthly_due(sub):
-            price = sub.revised_amount or sub.plan.price
-            duration = sub.plan.duration_days or 30
-            billing_days = get_days_in_month(sub.start_date)
-            monthly_due = (price * Decimal(billing_days) / Decimal(duration)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-            return monthly_due
-
         due_amount = Decimal('0.00')
 
         if base_plan_sub:
-            due_amount += get_monthly_due(base_plan_sub)
+            base_price = base_plan_sub.revised_amount or base_plan_sub.plan.price
+            due_amount += Decimal(base_price)
 
-        for addon in add_on_subs:
-            due_amount += get_monthly_due(addon)
+        for addon_sub in add_on_subs:
+            addon_price = addon_sub.revised_amount or addon_sub.plan.price
+            due_amount += Decimal(addon_price)
 
+        due_amount = due_amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        active_subs = subscriptions.filter(end_date__gte=timezone.now().date())
+
+        total_revised_amount = Decimal('0.00')
+
+        for sub in active_subs:
+            total_revised_amount += Decimal(sub.revised_amount or sub.plan.price)
+
+        total_revised_amount = total_revised_amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         context = {
             'customer': customer,
             'base_plan': base_plan_sub.plan if base_plan_sub else None,
             'add_ons': [sub.plan for sub in add_on_subs],
             'assigned_on': assigned_on,
             'due_date': due_date,
+            'revised_amount': str(total_revised_amount),
             'due_amount': due_amount,
         }
         return render(request, self.template_name, context)
-#
-# class CustomerDetailView(LoginRequiredMixin, View):
-#     template_name = 'dashboard/Customer-Detail.html'
-#
-#     def get(self, request, pk):
-#         customer = get_object_or_404(Customer, pk=pk)
-#         subscriptions = Subscription.objects.filter(customer=customer)
-#
-#         base_plan = subscriptions.filter(plan__plan_type='base').first()
-#         add_ons = subscriptions.filter(plan__plan_type='add_on')
-#
-#         context = {
-#             'customer': customer,
-#             'base_plan': base_plan.plan if base_plan else None,
-#             'add_ons': [sub.plan for sub in add_ons],
-#             'assigned_on': base_plan.start_date if base_plan else None,
-#             'due_date': base_plan.end_date if base_plan else None,
-#             'due_amount': base_plan.plan.price if base_plan else None,
-#         }
-#         return render(request, self.template_name, context)
+
 
 class DeleteCustomerView(LoginRequiredMixin, View):
     login_url = reverse_lazy('dashboard:admin_login')
