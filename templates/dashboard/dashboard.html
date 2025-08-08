@@ -88,6 +88,28 @@
 
   </div>
 </div>
+{% for customer in customers %}
+<div class="modal fade" id="QRCodeModal{{ customer.id }}" tabindex="-1" aria-labelledby="QRCodeModalLabel{{ customer.id }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-center">
+      <div class="modal-header">
+        <h5 class="modal-title" id="QRCodeModalLabel{{ customer.id }}">QR Code for {{ customer.name }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        {% if customer.qr_code and customer.qr_code.image %}
+        <img src="{{ customer.qr_code.image.url }}" alt class="img-fluid qr-img">
+        {% else %}
+        <p class="text-muted">QR Code not available</p>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+
 
 
 <!--Customer List Table-->
@@ -141,7 +163,7 @@
             <th>Status</th>
             <th>Due Amount</th>
             <th>Last Payment</th>
-            <!-- <th>Actions</th> -->
+            <th>QR Code</th>
           </tr>
         </thead>
         <tbody>
@@ -166,6 +188,15 @@
             </td>
             <td><span class="text-red">₹{{ customer.due_amount }}</span></td>
             <td>{{ customer.last_payment|date:"Y-m-d" }}</td>
+<!--            <td><button type="button" class="btn btn-light"><i class="fa-solid fa-qrcode"></i></button></td>-->
+            <td>
+              <button type="button"
+                      class="btn btn-light"
+                      data-bs-toggle="modal"
+                      data-bs-target="#QRCodeModal{{ customer.id }}">
+                <i class="fa-solid fa-qrcode"></i>
+              </button>
+            </td>
 
 
           </tr>

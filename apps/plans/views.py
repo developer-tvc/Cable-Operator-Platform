@@ -15,6 +15,7 @@ from django.conf import settings
 import os
 from apps.accounts.models import Customer
 from reportlab.lib.units import inch
+from django.db.models import Count
 
 
 # Mixins for filtering and exporting plans
@@ -73,8 +74,13 @@ class PlanListView(PlanFilterMixin, ListView):
     template_name = 'plans/plan-management.html'
     context_object_name = 'plans'
 
+    # def get_queryset(self):
+    #     queryset = Plan.objects.all().order_by('-id')
+    #     filtered_qs, _, _, _ = self.apply_filters(self.request, queryset)
+    #     return filtered_qs
     def get_queryset(self):
-        queryset = Plan.objects.all().order_by('-id')
+        # Annotate with count of subscriptions
+        queryset = Plan.objects.annotate(subscription_count=Count('subscriptions_set')).order_by('-id')
         filtered_qs, _, _, _ = self.apply_filters(self.request, queryset)
         return filtered_qs
 
@@ -135,17 +141,31 @@ class PlanUpdateView(UpdateView):
         messages.error(self.request, "Please correct the errors below.")
         return super().form_invalid(form)
 
+#
+# class PlanDeleteView(DeleteView):
+#     model = Plan
+#     success_url = reverse_lazy('plan:plan_management')
+#     context_object_name = 'plan'
+#
+#     def post(self, request, *args, **kwargs):
+#         self.object = self.get_object()
+#         self.object.status = 'inactive'
+#         self.object.save()
+#         return redirect(self.success_url)
 
-class PlanDeleteView(DeleteView):
-    model = Plan
-    success_url = reverse_lazy('plan:plan_management')
-    context_object_name = 'plan'
+class PlanDeleteView(View):
+    def post(self, request, pk):
+        plan = get_object_or_404(Plan, pk=pk)
 
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        self.object.status = 'inactive'
-        self.object.save()
-        return redirect(self.success_url)
+        if plan.subscriptions_set.exists():
+            messages.error(request, f"Cannot delete plan '{plan.name}' because it is subscribed by customers.")
+        else:
+            # Deactivate instead of delete
+            plan.status = 'inactive'
+            plan.save()
+            messages.success(request, f"Plan '{plan.name}' deactivated successfully.")
+
+        return redirect(reverse_lazy('plan:plan_management'))
 
 class DownloadQRCodePDFView(View):
     def get(self, request, customer_id):
@@ -188,3 +208,4 @@ class DownloadQRCodePDFView(View):
         p.showPage()
         p.save()
         return response
+
