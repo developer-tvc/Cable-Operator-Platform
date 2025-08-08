@@ -141,7 +141,7 @@
             <th>Status</th>
             <th>Due Amount</th>
             <th>Last Payment</th>
-            <!-- <th>Actions</th> -->
+            <th>QR Code</th>
           </tr>
         </thead>
         <tbody>
@@ -166,6 +166,7 @@
             </td>
             <td><span class="text-red">₹{{ customer.due_amount }}</span></td>
             <td>{{ customer.last_payment|date:"Y-m-d" }}</td>
+            <td><button type="button" class="btn btn-light"><i class="fa-solid fa-qrcode"></i></button></td>
 
 
           </tr>
