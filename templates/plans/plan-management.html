@@ -164,7 +164,12 @@
                 This will <span class="fw-bold">Deactivate</span> the plan
                 <span class="fw-bold">{{ plan.name }}</span>
               </h6>
-
+               {% if plan.subscription_count > 0 %}
+                  <h6 class="text-danger">This plan is currently subscribed by customers and cannot be deleted.</h6>
+                  <div class="justify-content-center mt-3 d-flex gap-3">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  </div>
+               {% else %}
               <!-- Deactivate Form -->
               <form method="post" action="{% url 'plan:delete_plan' plan.id %}">
                 {% csrf_token %}
@@ -173,6 +178,8 @@
                   <button type="submit" class="btn btn-danger">Deactivate</button>
                 </div>
               </form>
+              {% endif %}
+
 
             </div>
           </div>
@@ -263,6 +270,7 @@
               <th>Plan Duration</th>
               <th>Plan Description</th>
               <th>Plan Status</th>
+              <<th class="text-center">Subscription count</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -282,7 +290,7 @@
                 <span class="btn btn-danger">Inactive</span>
                 {% endif %}
               </td>
-
+              <td class="text-center">{{ plan.subscription_count }}</td>
               <td>
                 <div class="d-flex">
                   <!-- Edit Icon -->
@@ -290,8 +298,13 @@
                     data-bs-target="#Editplan{{ plan.id }}"></i>
 
                   <!-- Delete Icon -->
-                  <i class="fa-solid fa-trash text-danger ms-3" type="button" data-bs-toggle="modal"
-                    data-bs-target="#Deleteplan{{ plan.id }}"></i>
+                  <i class="fa-solid fa-trash text-danger ms-3"
+                      type="button"
+                      data-bs-toggle="modal"
+                      data-bs-target="#Deleteplan{{ plan.id }}"
+                      {% if plan.subscription_count > 0 %} style="pointer-events: none; opacity: 0.5;" {% endif %}>
+                  </i>
+
                 </div>
               </td>
             </tr>
