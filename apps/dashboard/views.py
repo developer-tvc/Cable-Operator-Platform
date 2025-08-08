@@ -877,3 +877,4 @@ class PaymentFailedView(View):
             except Customer.DoesNotExist:
                 pass
         return render(request, 'payments/Unsuccesfull.html', context)
+

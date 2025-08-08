@@ -37,5 +37,4 @@ urlpatterns = [
     path("receipt/<int:payment_id>/", PaymentReceiptView.as_view(), name="payment-receipt"),
     path("receipt/<int:payment_id>/download/", PaymentReceiptPDFView.as_view(), name="payment-receipt-download"),
 
-
 ]
