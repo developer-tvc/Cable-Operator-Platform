@@ -369,11 +369,21 @@
                             <td class="text-blue">{{ customer.customer_id }}</td>
                             <td>{{ customer.name }}</td>
                             <td>{{ customer.mobile }}</td>
+<!--                            <td>-->
+<!--                                {% if customer.plan_details != "No Plan" %}-->
+<!--                                <span class="badge bg-white border text-gray">{{ customer.plan_details|safe }}</span>-->
+<!--                                {% else %}-->
+<!--                                <span class="text-muted">No Plan</span>-->
+<!--                                {% endif %}-->
+<!--                            </td>-->
+
                             <td>
-                                {% if customer.plan_details != "No Plan" %}
-                                <span class="badge bg-white border text-gray">{{ customer.plan_details|safe }}</span>
+                                {% if customer.plan_details %}
+                                    {% for plan in customer.plan_details %}
+                                        <span class="badge bg-white border text-gray">{{ plan }}</span><br>
+                                    {% endfor %}
                                 {% else %}
-                                <span class="text-muted">No Plan</span>
+                                    <span class="text-muted">No Plan</span>
                                 {% endif %}
                             </td>
                             <td>
@@ -383,8 +393,11 @@
                                 <span class="pending-badge"><i class="fa-solid fa-ban"></i> Inactive</span>
                                 {% endif %}
                             </td>
-                            <td><span class="text-red">₹{{ customer.due_amount }}</span></td>
-                            <!--<td>{{ customer.last_payment|date:"M j, Y" }}</td>-->
+
+<!--                            <td><span class="text-red">₹{{ customer.due_amount }}</span></td>-->
+                            <td><span class="text-red">₹{{ customer.total_revised_amount }}</span></td>
+
+<!--                            <td>{{ customer.last_payment|date:"M j, Y" }}</td>-->
                             <td>
                               {% if last_payment %}
                                 {{ last_payment.payment_date|date:"M j, Y" }}
