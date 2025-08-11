@@ -32,7 +32,7 @@
                         </a>
                     </div>
 
-                    <div class="d-flex gap-2 align-items-center">
+                    <!-- <div class="d-flex gap-2 align-items-center">
                         <i class="fa-solid fa-filter text-gray"></i>
                         <form method="get" class="d-inline">
                             <select name="plan" class="form-select bg-light-blue" onchange="this.form.submit()">
@@ -42,7 +42,7 @@
                                 </option>
                             </select>
                         </form>
-                    </div>
+                    </div> -->
                     <form method="get" class="d-inline">
                         <select name="status" class="form-select bg-light-blue" onchange="this.form.submit()">
                             <option value="">Choose Status</option>
@@ -298,7 +298,6 @@
                 </div>
             </div>
 
-            {% for customer in customers %}
             <!-- Success Modal -->
             <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-md modal-dialog-centered">
@@ -318,7 +317,6 @@
                     </div>
                 </div>
             </div>
-            {% endfor %}
 
             <!--DeactivateModal-->
             <div class="modal fade" id="DeactivateModal" tabindex="-1" aria-hidden="true">
