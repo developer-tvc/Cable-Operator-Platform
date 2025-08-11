@@ -12,7 +12,7 @@
           <div class="total-customer-icon-box mb-3">
             <i class="fa-solid fa-users"></i>
           </div>
-          <h5 class="text-gray">Total Customers</h5>
+          <h5 class="text-gray mobile-dashboard-font">Total Customers</h5>
           <h5 class="text-gray fw-bold font-lg">{{ total_customers }}</h5>
         </div>
 
@@ -25,7 +25,7 @@
           <i class="fa-solid fa-user-check"></i>
         </div>
 
-        <h5 class="text-gray">Active Customers</h5>
+        <h5 class="text-gray mobile-dashboard-font">Active Customers</h5>
         <h5 class="text-gray fw-bold font-lg">{{ active_customers }}</h5>
       </div>
     </div>
@@ -36,7 +36,7 @@
         <div class="inactive-customer-icon-box mb-3">
           <i class="fa-solid fa-user-xmark"></i>
         </div>
-        <h5 class="text-gray">Inactive Customers</h5>
+        <h5 class="text-gray mobile-dashboard-font">Inactive Customers</h5>
         <h5 class="text-gray fw-bold font-lg">{{ inactive_customers }}</h5>
       </div>
     </div>
@@ -48,7 +48,7 @@
         <div class="over-due-customer-icon-box mb-3">
           <i class="fa-solid fa-clock"></i>
         </div>
-        <h5 class="text-gray">Overdue Payments</h5>
+        <h5 class="text-gray mobile-dashboard-font">Overdue Payments</h5>
         <div class="d-flex align-items-center gap-2">
           <h5 class="text-gray fw-bold font-lg">{{overdue_customers}}</h5>
           <span>Customers</span>
@@ -64,7 +64,7 @@
           <i class="fa-solid fa-money-bill-1-wave"></i>
         </div>
 
-        <h5 class="text-gray">Monthly Revenue</h5>
+        <h5 class="text-gray mobile-dashboard-font">Monthly Revenue</h5>
         <h5 class="text-gray fw-bold font-lg">15,000</h5>
       </div>
     </div>
@@ -78,7 +78,7 @@
           <i class="fa-regular fa-calendar"></i>
         </div>
 
-        <h5 class="text-gray">Upcoming Dues</h5>
+        <h5 class="text-gray mobile-dashboard-font">Upcoming Dues</h5>
         <div class="d-flex align-items-center gap-2">
           <h5 class="text-gray fw-bold font-lg">{{upcoming_dues}}</h5>
           <span>Customers</span>
@@ -88,6 +88,7 @@
 
   </div>
 </div>
+
 {% for customer in customers %}
 <div class="modal fade" id="QRCodeModal{{ customer.id }}" tabindex="-1" aria-labelledby="QRCodeModalLabel{{ customer.id }}" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -109,11 +110,7 @@
 </div>
 {% endfor %}
 
-
-
-
 <!--Customer List Table-->
-
 <div class="container-fluid">
   <div class="card p-3 mb-5">
     <h5 class="text-gray mb-3">Customer Lists</h5>
@@ -181,9 +178,9 @@
             </td>
             <td>
               {% if customer.status == 'active' %}
-              <button type="button" class="btn btn-success">Active</button>
+              <span class="active-badge"><i class="fa-solid fa-check"></i> Active</span>
               {% else %}
-              <button type="button" class="btn btn-danger">Inactive</button>
+              <span class="pending-badge"><i class="fa-solid fa-ban"></i> Inactive</span>
               {% endif %}
             </td>
             <td><span class="text-red">₹{{ customer.due_amount }}</span></td>

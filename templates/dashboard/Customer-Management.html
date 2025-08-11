@@ -169,7 +169,7 @@
             </div>
 
             <!-- Updated Edit Modal -->
-            <div id="EditUser" class="modal fade" tabindex="-1">
+            <div id="editUser" class="modal fade" tabindex="-1">
                 <div class="modal-dialog modal-xl">
                     <div class="modal-content p-3">
                         <div class="modal-header">
@@ -302,7 +302,7 @@
             <!-- Success Modal -->
             <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-md modal-dialog-centered">
-                    <div class="modal-content text-center p-3">
+                    <div class="modal-content text-center p-5">
                         <div class="d-flex justify-content-center">
                             <div class="success-modal-round mb-1">
                                 <i class="fa-regular fa-circle-check"></i>
@@ -322,7 +322,7 @@
             <!--DeactivateModal-->
             <div class="modal fade" id="DeactivateModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-md modal-dialog-centered">
-                    <div class="modal-content text-center p-3">
+                    <div class="modal-content text-center p-5">
                         <div class="d-flex justify-content-center">
                             <div class="danger-modal-round mb-3">
                                 <i class="fa-solid fa-user-xmark"></i>
@@ -369,14 +369,6 @@
                             <td class="text-blue">{{ customer.customer_id }}</td>
                             <td>{{ customer.name }}</td>
                             <td>{{ customer.mobile }}</td>
-<!--                            <td>-->
-<!--                                {% if customer.plan_details != "No Plan" %}-->
-<!--                                <span class="badge bg-white border text-gray">{{ customer.plan_details|safe }}</span>-->
-<!--                                {% else %}-->
-<!--                                <span class="text-muted">No Plan</span>-->
-<!--                                {% endif %}-->
-<!--                            </td>-->
-
                             <td>
                                 {% if customer.plan_details %}
                                     {% for plan in customer.plan_details %}
@@ -394,10 +386,12 @@
                                 {% endif %}
                             </td>
 
-<!--                            <td><span class="text-red">₹{{ customer.due_amount }}</span></td>-->
-                            <td><span class="text-red">₹{{ customer.total_revised_amount }}</span></td>
+                            <td>
+                                <span class="text-red" title="Due: ₹{{ customer.due_amount }}, Revised: ₹{{ customer.total_revised_amount }}">
+                                    ₹{{ customer.final_amount }}
+                                </span>
+                            </td>
 
-<!--                            <td>{{ customer.last_payment|date:"M j, Y" }}</td>-->
                             <td>
                               {% if last_payment %}
                                 {{ last_payment.payment_date|date:"M j, Y" }}
@@ -407,20 +401,22 @@
                             </td>
 
                             <td>
-                                <div class="d-flex justify-content-between">
+                                <div class="d-flex justify-content-between align-items-center">
                                     <a href="{% url 'dashboard:customer_detail' customer.id %}" class="text-gray">
                                         <i class="fa-regular fa-eye text-gray"></i>
                                     </a>
-                                    <i class="fa-solid fa-pen-to-square text-blue" style="cursor: pointer;"
-                                        onclick="loadCustomerData({{ customer.id }})"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#EditUser">
+                                   <i class="fa-solid fa-pen-to-square text-blue" style="cursor: pointer;"
+                                       onclick="loadCustomerData({{ customer.id }}, '{{ subscription.start_date|date:'Y-m-d' }}')"
+                                       data-bs-toggle="modal"
+                                       data-bs-target="#editUser">
                                     </i>
+
                                     <form action="{% url 'dashboard:delete_customer' customer.id %}" method="post"
                                         class="deleteForm">
                                         {% csrf_token %}
                                         <button type="submit" class="btn btn-link p-0 text-red">
-                                            <i class="fa-solid fa-trash text-danger"></i>
+<!--                                            <i class="fa-solid fa-user-minus text-danger"></i>-->
+                                            <i class="fa-solid fa-user-plus text-success"></i>
                                         </button>
                                     </form>
                                 </div>
