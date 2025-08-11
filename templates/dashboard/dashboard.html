@@ -12,7 +12,7 @@
           <div class="total-customer-icon-box mb-3">
             <i class="fa-solid fa-users"></i>
           </div>
-          <h5 class="text-gray">Total Customers</h5>
+          <h5 class="text-gray mobile-dashboard-font">Total Customers</h5>
           <h5 class="text-gray fw-bold font-lg">{{ total_customers }}</h5>
         </div>
 
@@ -25,7 +25,7 @@
           <i class="fa-solid fa-user-check"></i>
         </div>
 
-        <h5 class="text-gray">Active Customers</h5>
+        <h5 class="text-gray mobile-dashboard-font">Active Customers</h5>
         <h5 class="text-gray fw-bold font-lg">{{ active_customers }}</h5>
       </div>
     </div>
@@ -36,7 +36,7 @@
         <div class="inactive-customer-icon-box mb-3">
           <i class="fa-solid fa-user-xmark"></i>
         </div>
-        <h5 class="text-gray">Inactive Customers</h5>
+        <h5 class="text-gray mobile-dashboard-font">Inactive Customers</h5>
         <h5 class="text-gray fw-bold font-lg">{{ inactive_customers }}</h5>
       </div>
     </div>
@@ -48,7 +48,7 @@
         <div class="over-due-customer-icon-box mb-3">
           <i class="fa-solid fa-clock"></i>
         </div>
-        <h5 class="text-gray">Overdue Payments</h5>
+        <h5 class="text-gray mobile-dashboard-font">Overdue Payments</h5>
         <div class="d-flex align-items-center gap-2">
           <h5 class="text-gray fw-bold font-lg">{{overdue_customers}}</h5>
           <span>Customers</span>
@@ -64,7 +64,7 @@
           <i class="fa-solid fa-money-bill-1-wave"></i>
         </div>
 
-        <h5 class="text-gray">Monthly Revenue</h5>
+        <h5 class="text-gray mobile-dashboard-font">Monthly Revenue</h5>
         <h5 class="text-gray fw-bold font-lg">15,000</h5>
       </div>
     </div>
@@ -78,19 +78,17 @@
           <i class="fa-regular fa-calendar"></i>
         </div>
 
-        <h5 class="text-gray">Upcoming Dues</h5>
+        <h5 class="text-gray mobile-dashboard-font">Upcoming Dues</h5>
         <div class="d-flex align-items-center gap-2">
           <h5 class="text-gray fw-bold font-lg">{{upcoming_dues}}</h5>
           <span>Customers</span>
         </div>
       </div>
     </div>
-
   </div>
 </div>
 
 <!--Customer List Table-->
-
 <div class="container-fluid">
   <div class="card p-3 mb-5">
     <h5 class="text-gray mb-3">Customer Lists</h5>
@@ -119,6 +117,7 @@
             </select>
           </form>
         </div>
+
         <form method="get" class="d-inline">
           <select name="status" class="form-select bg-light-blue" onchange="this.form.submit()">
             <option value="">Choose Status</option>
@@ -126,8 +125,8 @@
             <option value="inactive" {% if status == "inactive" %}selected{% endif %}>Inactive</option>
           </select>
         </form>
-      </div>
 
+      </div>
     </div>
     <div class="table-responsive">
       <table id="CustomerListTable" class="display mt-3 table-bordered">
@@ -160,9 +159,9 @@
             </td>
             <td>
               {% if customer.status == 'active' %}
-              <button type="button" class="btn btn-success">Active</button>
+              <span class="active-badge"><i class="fa-solid fa-check"></i> Active</span>
               {% else %}
-              <button type="button" class="btn btn-danger">Inactive</button>
+              <span class="pending-badge"><i class="fa-solid fa-ban"></i> Inactive</span>
               {% endif %}
             </td>
             <td><span class="text-red">₹{{ customer.total_revised_amount }}</span></td>
@@ -199,6 +198,23 @@
               </div>
             </div>
           </div>
+          <div class="modal fade" id="QRCodeModal{{ customer.id }}" tabindex="-1" aria-labelledby="QRCodeModalLabel{{ customer.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content text-center">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="QRCodeModalLabel{{ customer.id }}">QR Code for {{ customer.name }}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  {% if customer.qr_code and customer.qr_code.image %}
+                  <img src="{{ customer.qr_code.image.url }}" alt class="img-fluid qr-img">
+                  {% else %}
+                  <p class="text-muted">QR Code not available</p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
           {% endfor %}
         </tbody>
       </table>
@@ -216,14 +232,11 @@
       <div class="search-filter">
         <input type="text" placeholder="Search Customers By Name, ID " class="form-control search-box">
       </div>
-
-
       <div class="d-flex gap-2 align-items-center align-items-center">
         <div class="export-btn">
           <button type="button" class="btn btn-primary"><i class="fa-solid fa-cloud-arrow-down"></i>
             Export</button>
         </div>
-
         <div class="d-flex gap-2 align-items-center">
           <i class="fa-solid fa-filter text-gray"></i>
         </div>
@@ -234,9 +247,7 @@
             <option value="">Inactive</option>
           </select>
         </div>
-
       </div>
-
     </div>
     <div class="table-responsive">
       <table id="RecentPaymentTable" class="display mt-3 table-bordered">
@@ -248,7 +259,6 @@
             <th>Method</th>
             <th>Status</th>
             <th>Date & time</th>
-
           </tr>
         </thead>
         <tbody>

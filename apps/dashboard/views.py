@@ -142,10 +142,30 @@ class CustomerDataMixin:
             # Total revised amount from active subscriptions
             # total_revised_amount = sum(sub.revised_amount for sub in active_subs if sub.revised_amount)
             # Use revised_amount if available; otherwise fallback to original plan price
-            total_revised_amount = sum(
-                sub.revised_amount if sub.revised_amount is not None else sub.plan.price
-                for sub in active_subs if sub.plan
+            # Always use plan price for due amount
+            # due_amount = sum(
+            #     sub.plan.price for sub in active_subs if sub.plan
+            # )
+            # print("due_amount",due_amount)
+            #
+            # # Only sum revised amounts that are explicitly set (not None or 0)
+            # total_revised_amount = sum(
+            #     sub.revised_amount for sub in active_subs if sub.revised_amount and sub.plan
+            # )
+
+            # Calculate due_amount from plan prices
+            # Calculate due_amount from plan prices
+            due_amount = sum(
+                Decimal(str(sub.plan.price)) for sub in active_subs if sub.plan
             )
+
+            # Calculate total revised amount if revised_amount is explicitly set
+            total_revised_amount = sum(
+                Decimal(str(sub.revised_amount)) for sub in active_subs if sub.revised_amount and sub.plan
+            )
+
+            # Final amount: use revised if available, else use due amount
+            final_amount = total_revised_amount if total_revised_amount > 0 else due_amount
 
             # Fallback for latest subscription if needed
             latest_sub = next(iter(getattr(customer, 'latest_subscriptions', [])), None)
@@ -157,7 +177,7 @@ class CustomerDataMixin:
             )
 
             # Due amount: can use total revised amount instead
-            due_amount = total_revised_amount
+
 
             # Last successful payment
             last_payment = Payment.objects.filter(customer=customer, status='success')\
@@ -175,6 +195,7 @@ class CustomerDataMixin:
                 'status': customer.status,
                 'plan_details': plan_list,
                 'due_amount': due_amount,
+                'final_amount': final_amount,
                 'last_payment': last_payment_display,
                 'total_revised_amount': total_revised_amount,
                 'qr_code_url': customer.qr_code.image.url if hasattr(customer, 'qr_code') and customer.qr_code and customer.qr_code.image else None,
@@ -350,9 +371,10 @@ class CreateCustomerView(LoginRequiredMixin, View):
 
                 if revised_amount is not None and total_original:
                     proportion = Decimal(original_price) / Decimal(total_original)
-                    revised_plan_amount = (revised_amount * proportion).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                    revised_plan_amount = (revised_amount * proportion).quantize(Decimal('0.01'),
+                                                                                 rounding=ROUND_HALF_UP)
                 else:
-                    revised_plan_amount = original_price
+                    revised_plan_amount = None
 
                 Subscription.objects.create(
                     customer=customer,
@@ -635,7 +657,7 @@ class CustomerDetailView(LoginRequiredMixin, View):
 
     def get(self, request, pk):
         customer = get_object_or_404(Customer, pk=pk)
-        subscriptions = Subscription.objects.filter(customer=customer)
+        subscriptions = Subscription.objects.filter(customer=customer).select_related('plan')
 
         base_plan_sub = subscriptions.filter(plan__plan_type='base').first()
         add_on_subs = subscriptions.filter(plan__plan_type='add_on')
@@ -643,36 +665,43 @@ class CustomerDetailView(LoginRequiredMixin, View):
         assigned_on = base_plan_sub.start_date if base_plan_sub else None
         due_date = assigned_on + relativedelta(months=1) if assigned_on else None
 
+        # ✅ Due amount should always use plan.price
         due_amount = Decimal('0.00')
-
-        if base_plan_sub:
-            base_price = base_plan_sub.revised_amount or base_plan_sub.plan.price
-            due_amount += Decimal(base_price)
+        if base_plan_sub and base_plan_sub.plan:
+            due_amount += Decimal(base_plan_sub.plan.price)
 
         for addon_sub in add_on_subs:
-            addon_price = addon_sub.revised_amount or addon_sub.plan.price
-            due_amount += Decimal(addon_price)
+            if addon_sub.plan:
+                due_amount += Decimal(addon_sub.plan.price)
 
         due_amount = due_amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        print("da",due_amount)
+
+        # ✅ Revised amount only if revised_amount is set (not None or 0)
+        total_revised_amount = Decimal('0.00')
         active_subs = subscriptions.filter(end_date__gte=timezone.now().date())
 
-        total_revised_amount = Decimal('0.00')
-
         for sub in active_subs:
-            total_revised_amount += Decimal(sub.revised_amount or sub.plan.price)
+            print(f"Plan: {sub.plan.name}, Revised: {sub.revised_amount}, Price: {sub.plan.price}")
+            if sub.revised_amount is not None and sub.revised_amount > 0 and sub.plan:
+                total_revised_amount += Decimal(sub.revised_amount)
 
         total_revised_amount = total_revised_amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        print("total_revised_amount",total_revised_amount)
+
         context = {
             'customer': customer,
             'base_plan': base_plan_sub.plan if base_plan_sub else None,
-            'add_ons': [sub.plan for sub in add_on_subs],
+            'add_ons': [sub.plan for sub in add_on_subs if sub.plan],
             'assigned_on': assigned_on,
             'due_date': due_date,
-            'revised_amount': str(total_revised_amount),
             'due_amount': due_amount,
         }
-        return render(request, self.template_name, context)
 
+        if total_revised_amount > 0:
+            context['revised_amount'] = total_revised_amount
+
+        return render(request, self.template_name, context)
 
 class DeleteCustomerView(LoginRequiredMixin, View):
     login_url = reverse_lazy('dashboard:admin_login')

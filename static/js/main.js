@@ -321,6 +321,57 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+/* ---------- EDIT CUSTOMER MODAL ---------- */
+$('#editUser').on('shown.bs.modal', function () {
+  const $modal = $('#editUser');
+  const $baseSel = $modal.find('#edit_base_plan');
+  const $addSel = $modal.find('#edit_add_on_plan');
+  const $dueAmt = $modal.find('#edit_due_amount');
+  const $revisedAmt = $modal.find('#edit_revised_amount');
+
+  // Initialize Select2 for Add-on Plan
+  $addSel.select2({
+    dropdownParent: $modal,
+    placeholder: 'Select Add‑on Plans',
+    width: 'resolve',
+    allowClear: true,
+  });
+
+  // Refresh plan info
+  function refreshEditPlanInfo() {
+    const baseId = $baseSel.val() || '';
+    const addonIds = $addSel.val() ? $addSel.val().join(',') : '';
+
+    if (!baseId) {
+      $dueAmt.val('');
+      $revisedAmt.val('');
+      return;
+    }
+
+    fetch(`/dashboard/customers/plan-info/?base_plan=${baseId}&add_on_plan=${addonIds}`)
+      .then(response => response.json())
+      .then(data => {
+        const due = parseFloat(data.due_amount || 0);
+        $dueAmt.val(due.toFixed(2));
+        $revisedAmt.val(due.toFixed(2));  // Or modify as needed
+      })
+      .catch(err => {
+        console.error('Error fetching plan info for edit modal:', err);
+        $dueAmt.val('');
+        $revisedAmt.val('');
+      });
+  }
+
+  // Bind change events
+  $baseSel.on('change', refreshEditPlanInfo);
+  $addSel.on('change select2:select select2:unselect', refreshEditPlanInfo);
+
+  // Trigger initial fetch
+  refreshEditPlanInfo();
+});
+
+
+
   /* ---------- SELECT2 INIT FOR EDIT MODAL ---------- */
   $('#EditUser').on('shown.bs.modal', function () {
     $('#edit_add_on_plan').select2({
@@ -457,7 +508,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-
 /* ---------- LOAD CUSTOMER DATA FOR EDIT ---------- */
 async function loadCustomerData(customerId) {
   try {
@@ -499,7 +549,27 @@ async function loadCustomerData(customerId) {
 
     document.getElementById('edit_due_amount').value = data.due_amount || '';
     document.getElementById('edit_revised_amount').value = data.revised_amount || '';
-    document.getElementById('edit_start_date').value = data.start_date || '';
+
+    // Start date handling
+    const startDateInput = document.getElementById('edit_start_date');
+    const startDateStr = data.start_date || '';
+    startDateInput.value = startDateStr;
+
+    if (startDateStr) {
+      const subscriptionStartDate = new Date(startDateStr);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Remove time part
+
+      if (subscriptionStartDate <= today) {
+        startDateInput.readOnly = true;
+        startDateInput.classList.add('bg-light');
+        startDateInput.title = 'Start date cannot be edited after subscription begins.';
+      } else {
+        startDateInput.readOnly = false;
+        startDateInput.classList.remove('bg-light');
+        startDateInput.removeAttribute('title');
+      }
+    }
 
     const modalElement = document.getElementById('EditUser');
     const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
@@ -508,6 +578,7 @@ async function loadCustomerData(customerId) {
     console.error('Error loading customer data:', err);
   }
 }
+
 
 /* ---------- VALIDATION HELPERS ---------- */
 async function validateCustomerCreateForm(form, isEdit = false) {

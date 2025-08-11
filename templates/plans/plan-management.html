@@ -23,7 +23,6 @@
           <input type="text" name="search" placeholder="Search plans By Name" class="form-control search-box"
             value="{{ search }}">
         </form>
-
         <div class="d-flex gap-2 align-items-center align-items-center">
           <div class="export-btn">
             <a href="?export=xlsx{% if status %}&status={{ status }}{% endif %}{% if type %}&type={{ type }}{% endif %}{% if search %}&search={{ search }}{% endif %}"
@@ -284,10 +283,11 @@
               <td><span class="text-blue">{{ plan.description }}</span></td>
               <td>
                 {% if plan.status == 'active' %}
-                <button type="button" class="btn btn-success" data-bs-toggle="modal"
-                  data-bs-target="#DeactivateModal{{ plan.id }}">Active</button>
+                <span class="active-badge"><i class="fa-solid fa-check"></i> Active</span>
+<!--                <button type="button" class="btn btn-success" data-bs-toggle="modal"-->
+<!--                  data-bs-target="#DeactivateModal{{ plan.id }}">Active</button>-->
                 {% else %}
-                <span class="btn btn-danger">Inactive</span>
+                <span class="pending-badge"><i class="fa-solid fa-ban"></i> Inactive</span>
                 {% endif %}
               </td>
               <td class="text-center">{{ plan.subscription_count }}</td>

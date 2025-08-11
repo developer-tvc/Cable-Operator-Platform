@@ -14,7 +14,7 @@
 }
 
 .text-small {
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .bg-light-blue {
@@ -33,7 +33,7 @@
 }
 
 .active-text {
-  color: #0a84da!important;
+  color: #0a84da !important;
   font-weight: bold;
   text-decoration: underline;
 }
@@ -65,6 +65,8 @@
   color: #08ae7f;
   padding: 8px;
   border-radius: 20px;
+ font-size: 12px;
+ font-weight: bold;
 }
 .inactive-badge {
   background-color: #fff2dd;
@@ -72,6 +74,8 @@
   color: #e4930f;
   border-radius: 20px;
   padding: 8px;
+ font-size: 12px;
+ font-weight: bold;
 }
 
 .pending-badge {
@@ -80,6 +84,8 @@
   color: #fe4d2e;
   border-radius: 20px;
   padding: 8px;
+font-size: 10px;
+font-weight: bold;  font-size: 12px;
 }
 
 .btn-success {
@@ -93,7 +99,7 @@
 .btn-secondary,
 .btn-primary,
 .btn-dark,
-.btn-white {
+.btn-light {
   border-radius: 40px;
 }
 
@@ -126,6 +132,7 @@ div.dt-container.dt-empty-footer tbody > tr:last-child > * {
 }
 
 #myTable,
+#PaymentManagementTable,
 #PaymentHistoryTable,
 #CustomerListTable,
 #RecentPaymentTable {
@@ -136,9 +143,21 @@ div.dt-container.dt-empty-footer tbody > tr:last-child > * {
   border-bottom: none;
 }
 
+table.dataTable {
+  width: 100% !important;
+  min-width: 600px;
+}
+
+table.dataTable > tbody > tr > th,
+table.dataTable > tbody > tr > td {
+  padding: 22px 11px !important;
+}
+
+
 table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
     padding: 18px 12px !important;
 }
+
 .select2-container--default.select2-container--focus
   .select2-selection--multiple {
   border: solid #dee2e6 1px !important;
@@ -158,7 +177,6 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
 .select2-container .select2-selection--multiple {
   min-height: 32px !important;
   margin-top: 15px !important;
-  overflow-y: auto;
 }
 
 .select2-container--default
@@ -311,8 +329,8 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
   height: 100vh;
   background-color: #0a84da;
   display: flex;
-  background-image: url('../Image/login-bg.png');
-   position: relative;
+  background-image: url("../Image/login-bg.png");
+  position: relative;
   justify-content: center;
   align-items: center;
   background-repeat: no-repeat;
@@ -321,7 +339,7 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
   border-top-left-radius: 24px;
 }
 
-.login-title h2{
+.login-title h2 {
   font-size: 3rem;
 }
 
@@ -332,7 +350,6 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
   justify-content: center;
   align-items: center;
 }
-
 
 /****Payment Success Page*****/
 
@@ -451,11 +468,22 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
 }
 
 /****Media Query*****/
-@media (max-width: 900px) {
+
+ @media(max-width:1058px){
   .search-box {
-    width: 100%;
+    width: 100%!important;
     margin-bottom: 32px;
   }
+}
+
+
+@media(min-width:1346px) and (max-width:1525px){
+  .mobile-dashboard-font{
+    font-size: 16px;
+  }
+}
+
+@media(max-width: 900px) {
   .filter-section {
     flex-direction: column;
   }
@@ -465,7 +493,6 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
   .title {
     font-size: 15px;
   }
-
 
   .logo-font {
     font-size: 16px;
@@ -484,25 +511,25 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
   }
 }
 
-@media(max-width:767px){
- .login-banner-section {
-   height: auto;
- }
 
- .login-mobile{
-  display: none;
- }
+@media (max-width: 767px) {
+  .login-banner-section {
+    height: auto;
+  }
 
- .login-title h2 {
+  .login-mobile {
+    display: none;
+  }
+
+  .login-title h2 {
     font-size: 1.5rem;
     padding: 16px;
-}
+  }
 
-
-.login-right-section {
+  .login-right-section {
     padding: 32px;
- }
- .filter-date-section {
+  }
+  .filter-date-section {
     width: 100%;
   }
 }
