@@ -177,6 +177,7 @@ class CustomerDataMixin:
                 'due_amount': due_amount,
                 'last_payment': last_payment_display,
                 'total_revised_amount': total_revised_amount,
+                'qr_code_url': customer.qr_code.image.url if hasattr(customer, 'qr_code') and customer.qr_code and customer.qr_code.image else None,
             })
 
         return customer_data
@@ -198,6 +199,10 @@ class ExcelExportMixin:
             for row_num, row_data in enumerate(data, 2):
                 for col_num, cell_value in enumerate(row_data, 1):
                     col_letter = get_column_letter(col_num)
+
+                    if isinstance(cell_value, list):
+                        cell_value = ', '.join(map(str, cell_value))
+
                     ws[f"{col_letter}{row_num}"] = cell_value
 
             response = HttpResponse(
@@ -230,7 +235,7 @@ class AdminDashboardView(LoginRequiredMixin, CustomerSearchFilterMixin, Customer
                 c['name'],
                 c['mobile'],
                 c['status'],
-                c['plan_details'],
+                ", ".join(c['plan_details']),
                 c['due_amount'],
                 c['last_payment']
             ]
