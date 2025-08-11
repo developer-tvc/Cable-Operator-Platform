@@ -130,6 +130,8 @@ class CustomerSearchFilterMixin:
 class CustomerDataMixin:
     def get_enriched_customer_data(self, customers):
         customer_data = []
+        today = timezone.now().date()
+        month_start = date(today.year, today.month, 1)
 
         for customer in customers:
             # All active plans (base + add-ons)
@@ -187,6 +189,15 @@ class CustomerDataMixin:
                 if last_payment and last_payment.payment_date else 'N/A'
             )
 
+            # Payment status for current month
+            if Payment.objects.filter(customer=customer, payment_for_month=month_start, status='success').exists():
+                payment_status = "No Dues"
+            elif Payment.objects.filter(customer=customer, payment_for_month=month_start).exists():
+                payment_status = "Due"
+            else:
+                payment_status = "N/A"
+
+
             customer_data.append({
                 'id': customer.id,
                 'customer_id': customer.customer_id,
@@ -197,6 +208,7 @@ class CustomerDataMixin:
                 'due_amount': due_amount,
                 'final_amount': final_amount,
                 'last_payment': last_payment_display,
+                'payment_status': payment_status,
                 'total_revised_amount': total_revised_amount,
                 'qr_code_url': customer.qr_code.image.url if hasattr(customer, 'qr_code') and customer.qr_code and customer.qr_code.image else None,
             })
