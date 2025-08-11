@@ -16,7 +16,7 @@ urlpatterns = [
     path('customers/<str:pk>/delete/', DeleteCustomerView.as_view(), name='delete_customer'),
     path('customer/detail/<int:pk>/', CustomerDetailView.as_view(), name='customer_detail'),
     path('customers/plan-info/',  PlanInfoView.as_view(),   name='plan_info'),
-    path('customer/check-duplicates/', CheckCustomerDuplicatesView.as_view(), name='check_customer_duplicates'),
+    path('customers/check-duplicates/', CheckCustomerDuplicatesView.as_view(), name='check_customer_duplicates'),
     # path('pay/<str:customer_id>/', GPayRedirectView.as_view(), name='gpay_redirect'),
 
     # path("payment/razorpay/<int:customer_id>/", RazorpayPaymentView.as_view(), name="razorpay-payment"),

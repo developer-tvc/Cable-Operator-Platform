@@ -70,7 +70,7 @@
                                     <div class="col-md-4 col-12">
                                         <div class="form-group mb-3">
                                             <label for="name" class="form-label mb-3">Customer Name</label>
-                                            <input type="text" class="form-control bg-light-blue" name="name">
+                                            <input type="text" class="form-control bg-light-blue" name="name" id="id_name">
                                         </div>
                                     </div>
 
@@ -78,7 +78,7 @@
                                     <div class="col-md-4 col-12">
                                         <div class="form-group mb-3">
                                             <label for="phone" class="form-label mb-3">Customer Number</label>
-                                            <input type="text" class="form-control bg-light-blue" name="mobile">
+                                            <input type="text" class="form-control bg-light-blue" name="mobile" id="id_mobile">
                                         </div>
                                     </div>
 
@@ -86,7 +86,7 @@
                                     <div class="col-md-4 col-12">
                                         <div class="form-group mb-3">
                                             <label for="email" class="form-label mb-3">Customer Email</label>
-                                            <input type="email" class="form-control bg-light-blue" name="email">
+                                            <input type="email" class="form-control bg-light-blue" name="email" id="id_email">
                                         </div>
                                     </div>
                                 </div>
@@ -318,6 +318,7 @@
                     </div>
                 </div>
             </div>
+            {% endfor %}
 
             <!--DeactivateModal-->
             <div class="modal fade" id="DeactivateModal" tabindex="-1" aria-hidden="true">
@@ -332,22 +333,19 @@
                             <h3 class="text-danger">Deactivating User?</h3>
                         </div>
                         <div class="danger-content">
-                            <h6 class="text-gray mb-3">This will <span class="fw-bold">Deactivate</span> the
-                                user
-                                <span class="fw-bold">{{ customer.name }}</span>
+                            <h6 class="text-gray mb-3">
+                                This will <span class="fw-bold">Deactivate</span> the user 
+                                <span id="deactivateCustomerName" class="fw-bold"></span>
                             </h6>
                             <div class="justify-content-center mt-3">
-                                <button type="button" class="btn btn-secondary " data-bs-dismiss="modal">cancel</button>
-                                <button type="button" id="DelmodalConfirmBtn" class="btn btn-danger"
-                                    data-bs-dismiss="modal">Deactivate</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" id="DelmodalConfirmBtn" class="btn btn-danger">Deactivate</button>
                             </div>
-
                         </div>
                     </div>
                 </div>
             </div>
-            {% endfor %}
-
+            
             <!--Table Section-->
             <div class="table-responsive">
                 <table id="myTable" class="display mt-3 table-bordered">
@@ -385,13 +383,11 @@
                                 <span class="pending-badge"><i class="fa-solid fa-ban"></i> Inactive</span>
                                 {% endif %}
                             </td>
-
                             <td>
                                 <span class="text-red" title="Due: ₹{{ customer.due_amount }}, Revised: ₹{{ customer.total_revised_amount }}">
                                     ₹{{ customer.final_amount }}
                                 </span>
                             </td>
-
                             <td>
                               {% if last_payment %}
                                 {{ last_payment.payment_date|date:"M j, Y" }}
@@ -414,8 +410,8 @@
                                     <form action="{% url 'dashboard:delete_customer' customer.id %}" method="post"
                                         class="deleteForm">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-link p-0 text-red">
-<!--                                            <i class="fa-solid fa-user-minus text-danger"></i>-->
+                                        <button type="submit" class="btn btn-link p-0 text-red"
+                                            data-name="{{ customer.name }}">
                                             <i class="fa-solid fa-user-plus text-success"></i>
                                         </button>
                                     </form>

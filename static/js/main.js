@@ -383,24 +383,35 @@ $('#editUser').on('shown.bs.modal', function () {
   });
 
   /* ---------- DELETE CONFIRMATION ---------- */
+  // Modal instance
   const deleteModal = new bootstrap.Modal(document.getElementById("DeactivateModal"));
   const confirmBtn = document.getElementById("DelmodalConfirmBtn");
   let formToSubmit = null;
 
+  // Handle delete button clicks
   document.querySelectorAll(".deleteForm").forEach(form => {
     form.addEventListener("submit", function (e) {
-      e.preventDefault();
+      e.preventDefault(); // Stop immediate submission
       formToSubmit = form;
+
+      // Set customer name in modal
+      const customerName = form.querySelector("button").getAttribute("data-name");
+      document.getElementById("deactivateCustomerName").textContent = customerName;
+
+      // Show modal
       deleteModal.show();
     });
   });
 
+  // Confirm delete
   confirmBtn.addEventListener("click", function () {
     if (formToSubmit) {
       formToSubmit.submit();
       formToSubmit = null;
     }
   });
+
+
 
   /* ---------- EDIT CUSTOMER FORM SUBMIT ---------- */
   const editForm = document.getElementById('editCustomerForm');

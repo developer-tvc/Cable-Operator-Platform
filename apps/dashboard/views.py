@@ -198,6 +198,7 @@ class CustomerDataMixin:
                 'final_amount': final_amount,
                 'last_payment': last_payment_display,
                 'total_revised_amount': total_revised_amount,
+                'qr_code_url': customer.qr_code.image.url if hasattr(customer, 'qr_code') and customer.qr_code and customer.qr_code.image else None,
             })
 
         return customer_data
@@ -734,3 +735,4 @@ class CheckCustomerDuplicatesView(View):
             })
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
+
