@@ -107,7 +107,7 @@
           </a>
         </div>
 
-        <div class="d-flex gap-2 align-items-center">
+        <!-- <div class="d-flex gap-2 align-items-center">
           <i class="fa-solid fa-filter text-gray"></i>
           <form method="get" class="d-inline">
             <select name="plan" class="form-select bg-light-blue" onchange="this.form.submit()">
@@ -116,7 +116,7 @@
               <option value="add_on" {% if plan == "add_on" %}selected{% endif %}>Add-On Plan</option>
             </select>
           </form>
-        </div>
+        </div> -->
 
         <form method="get" class="d-inline">
           <select name="status" class="form-select bg-light-blue" onchange="this.form.submit()">
@@ -136,8 +136,9 @@
             <th>Customer Name</th>
             <th>Customer No</th>
             <th>Plan Details</th>
-            <th>Customer Status</th>
+            <th>Payment Status</th>
             <th>Due Amount</th>
+            <th>Customer Status</th>
             <th>Last Payment</th>
             <th>QR Code</th>
           </tr>
@@ -158,13 +159,22 @@
               {% endif %}
             </td>
             <td>
+                {% if customer.payment_status == "No Dues" %}
+                    <span class="pending-badge px-3 py-2 fs-6">No Dues</span>
+                {% elif customer.payment_status == "Due" %}
+                    <span class="pending-badge px-3 py-2 fs-6">Due</span>
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <td><span class="text-red">₹{{ customer.final_amount }}</span></td>
+            <td>
               {% if customer.status == 'active' %}
               <span class="active-badge"><i class="fa-solid fa-check"></i> Active</span>
               {% else %}
               <span class="pending-badge"><i class="fa-solid fa-ban"></i> Inactive</span>
               {% endif %}
             </td>
-            <td><span class="text-red">₹{{ customer.total_revised_amount }}</span></td>
             <td>
               {% if last_payment %}
                 {{ last_payment.payment_date|date:"M j, Y" }}

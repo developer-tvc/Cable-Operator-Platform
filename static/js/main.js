@@ -197,15 +197,26 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   /* ---------- RESET EDIT CUSTOMER FORM ON MODAL CLOSE ---------- */
-  const editCustomerModal = document.getElementById('EditUser');
+  const editCustomerModal = document.getElementById('editUser');
   const editCustomerForm = editCustomerModal?.querySelector('form');
 
   if (editCustomerModal && editCustomerForm) {
     editCustomerModal.addEventListener('hidden.bs.modal', function () {
+      // Reset the form fields
       editCustomerForm.reset();
 
       // Remove validation errors
       editCustomerForm.querySelectorAll('.text-danger').forEach(el => el.remove());
+
+      // Get Select2 elements
+      const basePlanSelect = editCustomerForm.querySelector('#id_base_plan');
+      const addOnPlanSelect = editCustomerForm.querySelector('#id_add_on_plan');
+
+      // Reset both only if both are present
+      if (basePlanSelect && addOnPlanSelect) {
+        $(basePlanSelect).val(null).trigger('change');
+        $(addOnPlanSelect).val(null).trigger('change');
+      }
     });
   }
 
@@ -321,55 +332,54 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-/* ---------- EDIT CUSTOMER MODAL ---------- */
-$('#editUser').on('shown.bs.modal', function () {
-  const $modal = $('#editUser');
-  const $baseSel = $modal.find('#edit_base_plan');
-  const $addSel = $modal.find('#edit_add_on_plan');
-  const $dueAmt = $modal.find('#edit_due_amount');
-  const $revisedAmt = $modal.find('#edit_revised_amount');
+  /* ---------- EDIT CUSTOMER MODAL ---------- */
+  $('#editUser').on('shown.bs.modal', function () {
+    const $modal = $('#editUser');
+    const $baseSel = $modal.find('#edit_base_plan');
+    const $addSel = $modal.find('#edit_add_on_plan');
+    const $dueAmt = $modal.find('#edit_due_amount');
+    const $revisedAmt = $modal.find('#edit_revised_amount');
 
-  // Initialize Select2 for Add-on Plan
-  $addSel.select2({
-    dropdownParent: $modal,
-    placeholder: 'Select Add‑on Plans',
-    width: 'resolve',
-    allowClear: true,
-  });
+    // Initialize Select2 for Add-on Plan
+    $addSel.select2({
+      dropdownParent: $modal,
+      placeholder: 'Select Add‑on Plans',
+      width: 'resolve',
+      allowClear: true,
+    });
 
-  // Refresh plan info
-  function refreshEditPlanInfo() {
-    const baseId = $baseSel.val() || '';
-    const addonIds = $addSel.val() ? $addSel.val().join(',') : '';
+    // Refresh plan info
+    function refreshEditPlanInfo() {
+      const baseId = $baseSel.val() || '';
+      const addonIds = $addSel.val() ? $addSel.val().join(',') : '';
 
-    if (!baseId) {
-      $dueAmt.val('');
-      $revisedAmt.val('');
-      return;
-    }
-
-    fetch(`/dashboard/customers/plan-info/?base_plan=${baseId}&add_on_plan=${addonIds}`)
-      .then(response => response.json())
-      .then(data => {
-        const due = parseFloat(data.due_amount || 0);
-        $dueAmt.val(due.toFixed(2));
-        $revisedAmt.val(due.toFixed(2));  // Or modify as needed
-      })
-      .catch(err => {
-        console.error('Error fetching plan info for edit modal:', err);
+      if (!baseId) {
         $dueAmt.val('');
         $revisedAmt.val('');
-      });
-  }
+        return;
+      }
 
-  // Bind change events
-  $baseSel.on('change', refreshEditPlanInfo);
-  $addSel.on('change select2:select select2:unselect', refreshEditPlanInfo);
+      fetch(`/dashboard/customers/plan-info/?base_plan=${baseId}&add_on_plan=${addonIds}`)
+        .then(response => response.json())
+        .then(data => {
+          const due = parseFloat(data.due_amount || 0);
+          $dueAmt.val(due.toFixed(2));
+          $revisedAmt.val(due.toFixed(2));
+        })
+        .catch(err => {
+          console.error('Error fetching plan info for edit modal:', err);
+          $dueAmt.val('');
+          $revisedAmt.val('');
+        });
+    }
 
-  // Trigger initial fetch
-  refreshEditPlanInfo();
-});
+    // Bind change events
+    $baseSel.on('change', refreshEditPlanInfo);
+    $addSel.on('change select2:select select2:unselect', refreshEditPlanInfo);
 
+    // Trigger initial fetch
+    refreshEditPlanInfo();
+  });
 
 
   /* ---------- SELECT2 INIT FOR EDIT MODAL ---------- */
@@ -383,24 +393,23 @@ $('#editUser').on('shown.bs.modal', function () {
   });
 
   /* ---------- DELETE CONFIRMATION ---------- */
-  // Modal instance
   const deleteModal = new bootstrap.Modal(document.getElementById("DeactivateModal"));
   const confirmBtn = document.getElementById("DelmodalConfirmBtn");
   let formToSubmit = null;
 
-  // Handle delete button clicks
-  document.querySelectorAll(".deleteForm").forEach(form => {
-    form.addEventListener("submit", function (e) {
-      e.preventDefault(); // Stop immediate submission
-      formToSubmit = form;
+  // Use delegated event listener so it works after DataTables redraw
+  document.addEventListener("submit", function (e) {
+    if (e.target && e.target.classList.contains("deleteForm")) {
+      e.preventDefault();
+      formToSubmit = e.target;
 
       // Set customer name in modal
-      const customerName = form.querySelector("button").getAttribute("data-name");
+      const customerName = formToSubmit.querySelector("button").getAttribute("data-name");
       document.getElementById("deactivateCustomerName").textContent = customerName;
 
       // Show modal
       deleteModal.show();
-    });
+    }
   });
 
   // Confirm delete
@@ -410,8 +419,6 @@ $('#editUser').on('shown.bs.modal', function () {
       formToSubmit = null;
     }
   });
-
-
 
   /* ---------- EDIT CUSTOMER FORM SUBMIT ---------- */
   const editForm = document.getElementById('editCustomerForm');
@@ -435,21 +442,35 @@ $('#editUser').on('shown.bs.modal', function () {
 
         const result = await response.json();
         if (result.success) {
-          const modal = bootstrap.Modal.getInstance(document.getElementById('EditUser'));
-          if (modal) modal.hide();
+          const editModalEl = document.getElementById('editUser'); // use correct ID case
+          const editModalInstance = bootstrap.Modal.getInstance(editModalEl);
 
-          // Reset form (optional)
-          this.reset();
+          if (editModalInstance) {
+            // Attach event to run AFTER modal is fully hidden
+            editModalEl.addEventListener('hidden.bs.modal', function handler() {
+              // Remove this event listener after it runs once
+              editModalEl.removeEventListener('hidden.bs.modal', handler);
 
-          const msg = document.getElementById('successMessage');
-          if (msg) msg.textContent = "Customer Updated Successfully";
+              // Reset the form
+              editForm.reset();
 
-          const successModal = new bootstrap.Modal(document.getElementById('successModal'));
-          successModal.show();
+              // Set success message
+              const msgEl = document.getElementById('successMessage');
+              if (msgEl) msgEl.textContent = "Customer Updated Successfully";
 
-          document.querySelector('#successModal .okbtn').addEventListener('click', function () {
-            window.location.reload();
-          }, { once: true });
+              // Show success modal
+              const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+              successModal.show();
+
+              // Reload on OK click
+              document.querySelector('#successModal .okbtn').addEventListener('click', () => {
+                window.location.reload();
+              }, { once: true });
+            });
+
+            // Now hide the edit modal
+            editModalInstance.hide();
+          }
         }
         else {
           const alertBox = document.getElementById('editErrorAlert');
@@ -628,11 +649,19 @@ async function validateCustomerCreateForm(form, isEdit = false) {
 
   const baseSelected = basePlan && basePlan.value.trim() !== "";
   const addonSelected = addOnPlan && Array.from(addOnPlan.selectedOptions).length > 0;
-  if (!baseSelected && !addonSelected) {
-    showError(basePlan, "Select at least one plan.");
-    showError(addOnPlan, "Select at least one plan.");
+
+  if (!baseSelected) {
+    // Base plan must be selected
+    showError(basePlan, "Please select a base plan.");
     isValid = false;
   }
+
+  if (addonSelected && !baseSelected) {
+    // Add-on selected without base plan
+    showError(addOnPlan, "You must select a base plan before choosing add-ons.");
+    isValid = false;
+  }
+
 
   if (!startDateField?.value.trim()) {
     showError(startDateField, "Start date is required");
@@ -642,7 +671,7 @@ async function validateCustomerCreateForm(form, isEdit = false) {
   // 🔍 Skip duplicate check if editing
   if (!isEdit && isValid) {
     try {
-      const response = await fetch("/dashboard/customer/check-duplicates/", {
+      const response = await fetch("/dashboard/customers/check-duplicates/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
