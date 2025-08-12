@@ -1,12 +1,12 @@
-{% extends 'base.html' %}
+{% include 'includes/header.html' %}
 {% load static %}
-{% block title %}Payment Success{% endblock %}
 {% block content %}
-<img src="{% static 'images/success-img.gif' %}" alt="Success">
+<div class="payment-success-body">
+<img src="{% static 'Image/success-img.gif' %}" alt="Success">
 
 <div class="success-payment-card">
     <div class="animated-pay-circle">
-        <img src="{% static 'images/checkmark.gif' %}" alt="" class="success-img">
+        <img src="{% static 'Image/checkmark.gif' %}" alt="" class="success-img">
     </div>
 
     <div class="success-content">
@@ -15,14 +15,23 @@
 
         <div class="d-flex justify-content-center flex-column mb-3">
             <p class="fw-bold mb-2">Last Payment</p>
-            <p class="mb-2">Rs:{{ payment.amount }} on {{ payment.payment_date|date:"F d, Y" }}</p>
+            <p class="mb-2">₹{{ payment.amount }} on {{ payment.payment_date|date:"F d, Y" }}</p>
         </div>
 
         <div class="d-flex justify-content-center flex-column mb-3">
             <p class="fw-bold mb-2">Transaction ID</p>
             <p class="mb-2">{{ payment.upi_transaction_id }}</p>
-            <p class="mb-2 fw-bold">via {{ payment_method }}</p>
+            <p class="mb-2 fw-bold">via {{ payment.payment_method }}</p>
         </div>
+
+        {% if payment.subscriptions.exists %}
+        <div class="d-flex justify-content-center flex-column mb-3">
+            <p class="fw-bold mb-2">Plans Covered</p>
+            {% for subscription in payment.subscriptions.all %}
+                <p class="mb-1">{{ subscription.plan.name }} - ₹{{ subscription.plan.price }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
 
         <div class="d-flex justify-content-center flex-column mb-3">
             <p class="fw-bold mb-2">Next Due</p>
@@ -31,14 +40,13 @@
 
         <div class="d-flex flex-column">
             <div class="mb-3">
-                <a href="{% url 'dashboard' %}" class="btn btn-dark w-100 text-white go-back-btn">Go back to Dashboard</a>
+                <a href="{% url 'dashboard:customer_list' %}" class="btn btn-dark w-100 text-white go-back-btn">Go back to Dashboard</a>
             </div>
             <div class="mb-3">
-                <a href="{{ payment.receipt_file.url }}" class="btn btn-light w-100 text-success go-back-btn">
-                    <i class="fa-solid fa-download"></i> Download Receipt
-                </a>
+                    <a href="{% url 'dashboard:payment-receipt-download' payment.id %}" class="btn btn-light w-100 text-success go-back-btn"><i class="fa-solid fa-download"></i> Download Receipt</a>
             </div>
         </div>
     </div>
+</div>
 </div>
 {% endblock %}

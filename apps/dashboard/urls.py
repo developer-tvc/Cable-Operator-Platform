@@ -1,8 +1,12 @@
 from django.urls import path
 from .views import (
     AdminLoginView, AdminLogoutView, AdminDashboardView, CustomerListView, CreateCustomerView, UpdateCustomerView,
-    DeleteCustomerView,PlanInfoView,CustomerDetailView,RazorpayPaymentView, RazorpayVerifyPaymentView, CheckCustomerDuplicatesView
+    DeleteCustomerView,PlanInfoView,CustomerDetailView,RazorpayPaymentView, RazorpayVerifyPaymentView,
+    CheckCustomerDuplicatesView,PaymentReceiptView, PaymentReceiptPDFView
 )
+from django.views.generic import TemplateView
+from . import views
+
 
 app_name = 'dashboard'
 
@@ -16,13 +20,22 @@ urlpatterns = [
     path('customers/<str:pk>/delete/', DeleteCustomerView.as_view(), name='delete_customer'),
     path('customer/detail/<int:pk>/', CustomerDetailView.as_view(), name='customer_detail'),
     path('customers/plan-info/',  PlanInfoView.as_view(),   name='plan_info'),
-    path('customers/check-duplicates/', CheckCustomerDuplicatesView.as_view(), name='check_customer_duplicates'),
-    # path('pay/<str:customer_id>/', GPayRedirectView.as_view(), name='gpay_redirect'),
 
-    # path("payment/razorpay/<int:customer_id>/", RazorpayPaymentView.as_view(), name="razorpay-payment"),
-    # path("payment/razorpay/success/", razorpay_payment_success, name="razorpay-payment-success"),
+    path('customer/check-duplicates/', CheckCustomerDuplicatesView.as_view(), name='check_customer_duplicates'),
 
-    path("pay/<str:customer_id>/", RazorpayPaymentView.as_view(), name="gpay_redirect"),
-    path("payments/verify/", RazorpayVerifyPaymentView.as_view(), name="razorpay-verify"),
+    # Payment URLs
+    path("pay/<str:customer_id>/", views.RazorpayPaymentView.as_view(), name="gpay_redirect"),
+    path("payments/verify/", views.RazorpayVerifyPaymentView.as_view(), name="razorpay-verify"),
+
+    # Success and Failure pages - Updated to use class-based views
+    path("payments/success/", views.PaymentSuccessView.as_view(), name="payment_success_page"),
+    path("payments/failed/", views.PaymentFailedView.as_view(), name="payment_failed_page"),
+
+    # Alternative URLs if needed
+    path("payments/no-dues/", TemplateView.as_view(template_name="payments/No-Dues.html"), name="no_dues_page"),
+
+    path("receipt/<int:payment_id>/", PaymentReceiptView.as_view(), name="payment-receipt"),
+    path("receipt/<int:payment_id>/download/", PaymentReceiptPDFView.as_view(), name="payment-receipt-download"),
+
 
 ]
