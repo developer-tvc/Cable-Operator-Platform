@@ -292,19 +292,19 @@
               </td>
               <td class="text-center">{{ plan.subscription_count }}</td>
               <td>
-                <div class="d-flex">
+                <div class="d-flex justify-between">
                   <!-- Edit Icon -->
                   <i class="fa-solid fa-pen-to-square text-blue ms-3" type="button" data-bs-toggle="modal"
                     data-bs-target="#Editplan{{ plan.id }}"></i>
 
                   <!-- Delete Icon -->
-                  <i class="fa-solid fa-trash text-danger ms-3"
+                  <i class="fa-solid fa-file-circle-minus text-danger ms-3"
                       type="button"
                       data-bs-toggle="modal"
                       data-bs-target="#Deleteplan{{ plan.id }}"
                       {% if plan.subscription_count > 0 %} style="pointer-events: none; opacity: 0.5;" {% endif %}>
                   </i>
-
+                  <i class="fa-solid fa-file-circle-plus text-success"></i>
                 </div>
               </td>
             </tr>

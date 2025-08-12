@@ -1,41 +1,109 @@
-{% extends 'base.html' %}
+{% include 'includes/header.html' %}
 {% load static %}
-{% block title %}No Dues{% endblock %}
 {% block content %}
-<div class="card plan-card">
-    <div class="plan-card-details d-flex justify-content-between align-items-center">
-        <div class="d-flex gap-2 flex-column">
-            <h6 class="text-gray">Plan</h6>
-            <div class="flex gap-2">
-                <h5 class="text-gray">
-                    <i class="fa-solid fa-box"></i> {{ plan.name }}
-                </h5>
+<div class="no-dues">
+        <div class="no-due-container">
+
+            <!-- Header Image -->
+            <div class="no-due-header-img">
+                <img src="{% static 'Image/checkmark.gif' %}" alt="Checkmark" class="img-fluid">
+            </div>
+
+            <!-- No Dues Message -->
+            <div class="no-dues-content text-center">
+                <h3 class="text-gray mb-2">No Dues</h3>
+                <h6 class="text-success">Your account is up to date.</h6>
+            </div>
+
+            <!-- Amount Card -->
+            <div class="card amount-card">
+                <div class="amount-card-details d-flex justify-content-between align-items-center">
+                    <div class="d-flex flex-column gap-2">
+                        <h6 class="text-gray">Amount</h6>
+                        <div class="flex gap-2">
+                            <h5 class="text-gray">
+                                <i class="fa-solid fa-wallet"></i> Rs: {{ payment.amount }}
+                            </h5>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="badge active-badge">Paid</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plan Card -->
+            <div class="card plan-card">
+                <div class="plan-card-details d-flex justify-content-between align-items-center">
+                    <div class="d-flex flex-column gap-2">
+                        <h6 class="text-gray">Plan</h6>
+                        <div class="flex gap-2">
+                            <h5 class="text-gray">
+                                <i class="fa-solid fa-box"></i> {{ plan.name }}
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card plan-card">
+                <div class="plan-card-details d-flex justify-content-between align-items-center">
+                    <div class="d-flex flex-column gap-2">
+                        <h6 class="text-gray">Plan</h6>
+                        <div class="flex gap-2">
+                            <h5 class="text-gray">
+                                <i class="fa-solid fa-box"></i> {{ plan.name }}
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card plan-card">
+                <div class="plan-card-details d-flex justify-content-between align-items-center">
+                    <div class="d-flex flex-column gap-2">
+                        <h6 class="text-gray">Plan</h6>
+                        <div class="flex gap-2">
+                            <h5 class="text-gray">
+                                <i class="fa-solid fa-box"></i> {{ plan.name }}
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+            <!-- Footer Section -->
+            <div class="no-due-footer-container">
+
+                <!-- Last Payment -->
+                <div class="last-payment-details mb-3">
+                    <p class="fw-bold text-dark mb-0">Last Payment</p>
+                    <small class="text-gray">
+                        Rs: {{ payment.amount }} on {{ payment.payment_date|date:"F d, Y" }}
+                    </small>
+                    <p class="text-success fw-bold">via {{ payment_method }}</p>
+                </div>
+
+                <!-- Next Due -->
+                <div class="Next-Due-payment-details mb-3">
+                    <p class="fw-bold text-dark mb-0">Next Due</p>
+                    <small class="text-gray">{{ next_due_date|date:"F d, Y" }}</small>
+                </div>
+
+                <!-- Transaction ID -->
+                <div class="trans-payment-details mb-3">
+                    <p class="fw-bold text-dark mb-0">Transaction ID</p>
+                    <small class="text-gray">{{ payment.upi_transaction_id }}</small>
+                </div>
+
+                <div class="footer-button w-100 mb-3">
+                    <a href="{% url 'dashboard:payment-receipt-download' payment.id %}" class="btn btn-success w-100">
+                        <i class="fa-solid fa-download"></i> Download Receipt
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-</div>
 
-<div class="no-due-footer-container">
-    <div class="last-payment-details mb-3">
-        <p class="fw-bold text-dark mb-0">Last Payment</p>
-        <small class="text-gray">Rs:{{ payment.amount }} on {{ payment.payment_date|date:"F d, Y" }}</small>
-        <p class="text-success fw-bold">via {{ payment_method }}</p>
-    </div>
-
-    <div class="Next-Due-payment-details mb-3">
-        <p class="fw-bold text-dark mb-0">Next Due</p>
-        <small class="text-gray">{{ next_due_date|date:"F d, Y" }}</small>
-    </div>
-
-    <div class="trans-payment-details mb-3">
-        <p class="fw-bold text-dark mb-0">Transaction ID</p>
-        <small class="text-gray">{{ payment.upi_transaction_id }}</small>
-    </div>
-
-    <div class="footer-button">
-        <a href="{{ payment.receipt_file.url }}" class="btn btn-success">
-            <i class="fa-solid fa-download"></i> Download Receipt
-        </a>
-    </div>
-</div>
 {% endblock %}
