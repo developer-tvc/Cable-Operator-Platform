@@ -33,8 +33,6 @@ class Payment(models.Model):
     ]
 
     customer = models.ForeignKey('accounts.Customer', on_delete=models.CASCADE, related_name='payments')
-
-    # field to store which subscriptions this payment covers
     subscriptions = models.ManyToManyField('subscriptions.Subscription', related_name='payments', blank=True)
 
     amount = models.DecimalField(max_digits=8, decimal_places=2)

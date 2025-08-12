@@ -20,7 +20,6 @@ urlpatterns = [
     path('customers/<str:pk>/delete/', DeleteCustomerView.as_view(), name='delete_customer'),
     path('customer/detail/<int:pk>/', CustomerDetailView.as_view(), name='customer_detail'),
     path('customers/plan-info/',  PlanInfoView.as_view(),   name='plan_info'),
-
     path('customer/check-duplicates/', CheckCustomerDuplicatesView.as_view(), name='check_customer_duplicates'),
 
     # Payment URLs
@@ -36,5 +35,6 @@ urlpatterns = [
 
     path("receipt/<int:payment_id>/", PaymentReceiptView.as_view(), name="payment-receipt"),
     path("receipt/<int:payment_id>/download/", PaymentReceiptPDFView.as_view(), name="payment-receipt-download"),
+
 
 ]
