@@ -58,6 +58,10 @@ class Customer(models.Model):
         self.status = 'inactive'
         self.save()
 
+    def activate(self):
+        self.status = 'active'
+        self.save()
+
     def save(self, *args, **kwargs):
         if not self.customer_id:
             last_customer = Customer.objects.order_by('-id').first()

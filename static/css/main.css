@@ -27,7 +27,10 @@
 
 .main-body {
   background-color: #eef2f4;
+  padding-top: 100px;
+  padding-bottom: 100px;
 }
+
 .logo-font {
   font-size: 20px;
 }

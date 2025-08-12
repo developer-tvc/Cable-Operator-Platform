@@ -364,29 +364,29 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(data => {
           const due = parseFloat(data.due_amount || 0);
           $dueAmt.val(due.toFixed(2));
-          $revisedAmt.val(due.toFixed(2));
+
+          // Only set revised if it's currently empty (so we don't overwrite server/user provided value)
+          const revisedVal = ($revisedAmt.val() || '').toString().trim();
+          if (!revisedVal) {
+            $revisedAmt.val(due.toFixed(2));
+          }
         })
         .catch(err => {
           console.error('Error fetching plan info for edit modal:', err);
-          $dueAmt.val('');
-          $revisedAmt.val('');
         });
     }
 
-    // Bind change events
-    $baseSel.on('change', refreshEditPlanInfo);
-    $addSel.on('change select2:select select2:unselect', refreshEditPlanInfo);
-
-    // Trigger initial fetch
-    refreshEditPlanInfo();
+    // Bind change events (use namespaced handlers and remove previous handlers to avoid duplicates)
+    $baseSel.off('.editPlan').on('change.editPlan', refreshEditPlanInfo);
+    $addSel.off('.editPlan').on('change.editPlan select2:select.editPlan select2:unselect.editPlan', refreshEditPlanInfo);;
   });
 
 
   /* ---------- SELECT2 INIT FOR EDIT MODAL ---------- */
-  $('#EditUser').on('shown.bs.modal', function () {
+  $('#editUser').on('shown.bs.modal', function () {
     $('#edit_add_on_plan').select2({
-      dropdownParent: $('#EditUser'),
-      placeholder: 'Edit Add-on Plans',
+      dropdownParent: $('#editUser'),
+      placeholder: 'edit Add-on Plans',
       width: 'resolve',
       allowClear: true,
     });
@@ -397,20 +397,54 @@ document.addEventListener("DOMContentLoaded", function () {
   const confirmBtn = document.getElementById("DelmodalConfirmBtn");
   let formToSubmit = null;
 
-  // Use delegated event listener so it works after DataTables redraw
   document.addEventListener("submit", function (e) {
     if (e.target && e.target.classList.contains("deleteForm")) {
       e.preventDefault();
       formToSubmit = e.target;
 
-      // Set customer name in modal
       const customerName = formToSubmit.querySelector("button").getAttribute("data-name");
+      const icon = formToSubmit.querySelector("i");
+
+      const modalTitle = document.getElementById("modalTitle");
+      const modalActionText = document.getElementById("modalActionText");
+      const modalIcon = document.getElementById("modalIcon");
+      const modalIconWrapper = document.getElementById("modalIconWrapper");
+
+      // Set customer name
       document.getElementById("deactivateCustomerName").textContent = customerName;
 
-      // Show modal
+      if (icon.classList.contains("fa-user-xmark")) {
+        // Deactivate mode
+        modalTitle.textContent = "Deactivating User?";
+        modalTitle.className = "text-danger";
+        modalActionText.textContent = "Deactivate";
+        confirmBtn.textContent = "Deactivate";
+        confirmBtn.className = "btn btn-danger";
+        modalIcon.className = "fa-solid fa-user-xmark";
+        modalIconWrapper.className = "danger-modal-round mb-3";
+      } else {
+        // Activate mode
+        modalTitle.textContent = "Activating User?";
+        modalTitle.className = "text-success";
+        modalActionText.textContent = "Activate";
+        confirmBtn.textContent = "Activate";
+        confirmBtn.className = "btn btn-success";
+        modalIcon.className = "fa-solid fa-user-check";
+        modalIconWrapper.className = "success-modal-round mb-3";
+      }
+
       deleteModal.show();
     }
   });
+
+  confirmBtn.addEventListener("click", function () {
+    if (formToSubmit) {
+      formToSubmit.submit();
+      formToSubmit = null;
+    }
+  });
+
+
 
   // Confirm delete
   confirmBtn.addEventListener("click", function () {
@@ -520,7 +554,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    const editModal = document.getElementById('EditUser');
+    const editModal = document.getElementById('editUser');
     if (editModal) {
       editModal.addEventListener('hidden.bs.modal', function () {
         editForm.reset();
@@ -567,7 +601,9 @@ async function loadCustomerData(customerId) {
         }
       }
     }
+    $(addonSelect).trigger('change'); // so Select2 syncs with selected options
 
+    // Keep backend values, don't overwrite them
     document.getElementById('edit_due_amount').value = data.due_amount || '';
     document.getElementById('edit_revised_amount').value = data.revised_amount || '';
 
@@ -579,7 +615,7 @@ async function loadCustomerData(customerId) {
     if (startDateStr) {
       const subscriptionStartDate = new Date(startDateStr);
       const today = new Date();
-      today.setHours(0, 0, 0, 0); // Remove time part
+      today.setHours(0, 0, 0, 0);
 
       if (subscriptionStartDate <= today) {
         startDateInput.readOnly = true;
@@ -592,7 +628,7 @@ async function loadCustomerData(customerId) {
       }
     }
 
-    const modalElement = document.getElementById('EditUser');
+    const modalElement = document.getElementById('editUser');
     const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
     modal.show();
   } catch (err) {
