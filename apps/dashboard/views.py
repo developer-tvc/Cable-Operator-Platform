@@ -597,17 +597,24 @@ class CustomerDetailView(LoginRequiredMixin, View):
 
         return render(request, self.template_name, context)
 
-class DeleteCustomerView(LoginRequiredMixin, View):
+class ToggleCustomerStatusView(LoginRequiredMixin, View):
     login_url = reverse_lazy('dashboard:admin_login')
 
     @method_decorator(require_POST)
     def post(self, request, pk):
-        customer = Customer.objects.filter(pk=pk, status='active').first()
-        if customer:
+        customer = Customer.objects.filter(pk=pk).first()
+
+        if not customer:
+            messages.error(request, "Customer not found.")
+            return redirect('dashboard:customer_list')
+
+        if customer.status == 'active':
             customer.soft_delete()
-            messages.success(request, "Customer deactivated successfully.")
+            messages.success(request, f"Customer {customer.name} deactivated successfully.")
         else:
-            messages.error(request, "Customer not found or already inactive.")
+            customer.activate()
+            messages.success(request, f"Customer {customer.name} activated successfully.")
+
         return redirect('dashboard:customer_list')
     
 @method_decorator(csrf_exempt, name='dispatch')
