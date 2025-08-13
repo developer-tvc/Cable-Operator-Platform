@@ -214,14 +214,16 @@ class AdminDashboardView(LoginRequiredMixin, CustomerSearchFilterMixin, Customer
                 c['customer_id'],
                 c['name'],
                 c['mobile'],
-                c['status'],
                 ", ".join(c['plan_details']),
+                c['payment_status'],
                 c['due_amount'],
-                c['last_payment']
+                c['status'],
+                c['last_payment'],
+                c['qr_code_url'],
             ]
             for c in enriched_customers
         ]
-        excel_headers = ['Customer ID', 'Name', 'Mobile', 'Status', 'Plan', 'Due Amount', 'Last Payment']
+        excel_headers = ['Customer ID', 'Name', 'Mobile', 'Plan Details', 'Payment Status', 'Due Amount', 'Customer Status', 'Last Payment', 'QR Code']
 
         excel_response = self.export_as_excel(request, excel_data, excel_headers)
         if excel_response:
@@ -264,6 +266,10 @@ class AdminDashboardView(LoginRequiredMixin, CustomerSearchFilterMixin, Customer
             inactive=Count('id', filter=Q(status='inactive'))
         )
 
+        # Fetch recent payments
+        recent_payments = Payment.objects.select_related('customer') \
+            .order_by('-payment_date')[:10]
+
         return render(request, 'dashboard/dashboard.html', {
             'form': form,
             'welcome': welcome,
@@ -276,6 +282,7 @@ class AdminDashboardView(LoginRequiredMixin, CustomerSearchFilterMixin, Customer
             'status': status_filter,
             'plan': plan_filter,
             'search': search_query,
+            'recent_payments': recent_payments,
         })
 
 class CreateCustomerView(LoginRequiredMixin, View):

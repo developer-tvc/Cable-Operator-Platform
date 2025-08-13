@@ -253,36 +253,37 @@
             <th>Amount</th>
             <th>Method</th>
             <th>Status</th>
-            <th>Date & time</th>
+            <th>Date & Time</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td> <span class="text-blue"> P001</span></td>
-            <td>John Smith</td>
-            <td>₹300</td>
-            <td>Card</td>
-            <td>
-              <span class="badge active-badge"><i class="fa-solid fa-check"></i> Completed</span>
-            </td>
-            <td>
-              <p class="mb-1">2025/07/25</p>
-              <p class="text-small">14:30 PM</p>
-            </td>
-          </tr>
-          <tr>
-            <td> <span class="text-blue"> P001</span></td>
-            <td>John Smith</td>
-            <td>₹300</td>
-            <td>Card</td>
-            <td>
-              <span class="badge inactive-badge"><i class="fa-solid fa-spinner"></i> Pending</span>
-            </td>
-            <td>
-              <p class="mb-1">2025/07/25</p>
-              <p class="text-small">14:30 PM</p>
-            </td>
-          </tr>
+          {% for payment in recent_payments %}
+            <tr>
+              <td><span class="text-blue">P{{ payment.id|stringformat:"04d" }}</span></td>
+              <td>{{ payment.customer.name }}</td>
+              <td>₹{{ payment.amount }}</td>
+              <td>{{ payment.get_payment_method_display }}</td>
+              <td>
+                {% if payment.status == 'success' %}
+                  <span class="badge active-badge">
+                    <i class="fa-solid fa-check"></i> Completed
+                  </span>
+                {% elif payment.status == 'initiated' %}
+                  <span class="badge inactive-badge">
+                    <i class="fa-solid fa-spinner"></i> Pending
+                  </span>
+                {% else %}
+                  <span class="badge text-danger">
+                    <i class="fa-solid fa-xmark"></i> Failed
+                  </span>
+                {% endif %}
+              </td>
+              <td>
+                <p class="mb-1">{{ payment.payment_date|date:"Y/m/d" }}</p>
+                <p class="text-small">{{ payment.payment_date|time:"h:i A" }}</p>
+              </td>
+            </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
