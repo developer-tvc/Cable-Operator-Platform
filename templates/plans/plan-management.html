@@ -165,6 +165,7 @@
               </h3>
             </div>
             <div class="danger-content">
+              {% if not plan.subscriptions_set.exists %}
               <h6 class="text-gray mb-3">
                 {% if plan.status == 'active' %}
                   This will <span class="fw-bold text-danger">Deactivate</span> the plan
@@ -173,6 +174,8 @@
                 {% endif %}
                 <span class="fw-bold">{{ plan.name }}</span>
               </h6>
+              {% endif %}
+
 
               {% if plan.subscriptions_set.exists %}
                 <h6 class="text-danger">
