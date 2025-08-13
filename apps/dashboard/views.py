@@ -5,14 +5,14 @@ from calendar import monthrange
 from django.shortcuts import redirect, render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime as dt
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from django.views.generic import ListView
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404
-from django.utils.timezone import now
+from django.utils.timezone import now, make_aware
 from apps.accounts.models import Customer
 from apps.payments.models import Payment
 from django.views.decorators.http import require_POST
@@ -100,7 +100,15 @@ class CustomerDataMixin:
     def get_enriched_customer_data(self, customers):
         customer_data = []
         today = timezone.now().date()
+
+        # First & last day of current month
         month_start = date(today.year, today.month, 1)
+        last_day = monthrange(today.year, today.month)[1]
+        month_end = date(today.year, today.month, last_day)
+
+        # Aware datetimes for comparison with DateTimeField
+        start_of_month = timezone.make_aware(dt.combine(month_start, dt.min.time()))
+        end_of_month = timezone.make_aware(dt.combine(month_end, dt.max.time()))
 
         for customer in customers:
             # All active plans (base + add-ons)
@@ -140,14 +148,15 @@ class CustomerDataMixin:
                 if last_payment and last_payment.payment_date else 'N/A'
             )
 
-            # Payment status for current month
-            if Payment.objects.filter(customer=customer, payment_for_month=month_start, status='success').exists():
+            # Payment status for current month (based on payment_date)
+            if Payment.objects.filter(
+                customer=customer,
+                payment_date__range=(start_of_month, end_of_month),
+                status='success'
+            ).exists():
                 payment_status = "No Dues"
-            elif Payment.objects.filter(customer=customer, payment_for_month=month_start).exists():
-                payment_status = "Due"
             else:
-                payment_status = "N/A"
-
+                payment_status = "Due"
 
             customer_data.append({
                 'id': customer.id,
@@ -158,7 +167,7 @@ class CustomerDataMixin:
                 'plan_details': plan_list,
                 'due_amount': due_amount,
                 'final_amount': final_amount,
-                'last_payment': last_payment_display,
+                'last_payment': last_payment,
                 'payment_status': payment_status,
                 'total_revised_amount': total_revised_amount,
                 'qr_code_url': customer.qr_code.image.url if hasattr(customer, 'qr_code') and customer.qr_code and customer.qr_code.image else None,
@@ -167,40 +176,65 @@ class CustomerDataMixin:
 
 class ExcelExportMixin:
     def export_as_excel(self, request, data, headers, filename='customers.xlsx'):
-        if request.GET.get('export') == 'xlsx':
-            wb = Workbook()
-            ws = wb.active
-            ws.title = "Customers"
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Sheet1"
 
-            for col_num, header in enumerate(headers, 1):
+        # Write headers
+        for col_num, header in enumerate(headers, 1):
+            col_letter = get_column_letter(col_num)
+            ws[f"{col_letter}1"] = header
+
+        # Write data
+        for row_num, row_data in enumerate(data, 2):
+            for col_num, cell_value in enumerate(row_data, 1):
                 col_letter = get_column_letter(col_num)
-                ws[f"{col_letter}1"] = header
 
-            for row_num, row_data in enumerate(data, 2):
-                for col_num, cell_value in enumerate(row_data, 1):
-                    col_letter = get_column_letter(col_num)
+                # Convert lists to comma-separated string
+                if isinstance(cell_value, list):
+                    cell_value = ', '.join(map(str, cell_value))
+                # Convert model instances to string (safety)
+                elif hasattr(cell_value, '__str__'):
+                    cell_value = str(cell_value)
 
-                    if isinstance(cell_value, list):
-                        cell_value = ', '.join(map(str, cell_value))
+                ws[f"{col_letter}{row_num}"] = cell_value
 
-                    ws[f"{col_letter}{row_num}"] = cell_value
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        wb.save(response)
+        return response
 
-            response = HttpResponse(
-                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    
+class PaymentSearchFilterMixin:
+    def apply_payment_filters(self, request, queryset):
+        status_filter = request.GET.get('status')
+        pay_search_query = request.GET.get('pay_search')
+
+        if status_filter in ['success', 'initiated', 'failed']:
+            queryset = queryset.filter(status=status_filter)
+
+        if pay_search_query:
+            queryset = queryset.filter(
+                Q(customer__name__icontains=pay_search_query) |
+                Q(customer__customer_id__icontains=pay_search_query) |
+                Q(customer__mobile__icontains=pay_search_query)
             )
-            response['Content-Disposition'] = f'attachment; filename="{filename}"'
-            wb.save(response)
-            return response
-        return None
+
+        return queryset, status_filter, pay_search_query
+
 
 # Admin Dashboard View
-class AdminDashboardView(LoginRequiredMixin, CustomerSearchFilterMixin, CustomerDataMixin, ExcelExportMixin, View):
+class AdminDashboardView(LoginRequiredMixin,CustomerSearchFilterMixin,CustomerDataMixin,
+ExcelExportMixin,PaymentSearchFilterMixin,View):
     login_url = reverse_lazy('dashboard:admin_login')
 
     def get(self, request):
         form = CustomerForm()
         welcome = request.session.pop('just_logged_in', False)
 
+        # ----- Customers -----
         sub_qs = Subscription.objects.select_related('plan').order_by('-start_date')
         customers_qs = Customer.objects.prefetch_related(
             Prefetch('subscriptions', queryset=sub_qs, to_attr='latest_subscriptions')
@@ -209,65 +243,88 @@ class AdminDashboardView(LoginRequiredMixin, CustomerSearchFilterMixin, Customer
         customers_qs, status_filter, plan_filter, search_query = self.apply_filters(request, customers_qs)
         customers_qs = self.filter_by_latest_plan_type(customers_qs, plan_filter)
         enriched_customers = self.get_enriched_customer_data(customers_qs)
-        excel_data = [
-            [
-                c['customer_id'],
-                c['name'],
-                c['mobile'],
-                ", ".join(c['plan_details']),
-                c['payment_status'],
-                c['due_amount'],
-                c['status'],
-                c['last_payment'],
+
+        # ----- Excel Export for Customers -----
+        if request.GET.get('export') == 'customers_xlsx':
+            excel_data = [
+                [
+                    c['customer_id'],
+                    c['name'],
+                    c['mobile'],
+                    ", ".join(c['plan_details']),
+                    c['payment_status'],
+                    float(c['due_amount']),  # ensure number
+                    c['status'],
+                    c['last_payment'].payment_date.strftime('%d-%b-%Y') if c['last_payment'] else 'N/A',
+                ]
+                for c in enriched_customers
             ]
-            for c in enriched_customers
-        ]
-        excel_headers = ['Customer ID', 'Name', 'Mobile', 'Plan Details', 'Payment Status', 'Due Amount', 'Customer Status', 'Last Payment']
+            excel_headers = [
+                'Customer ID', 'Name', 'Mobile', 'Plan Details',
+                'Payment Status', 'Due Amount', 'Customer Status', 'Last Payment'
+            ]
+            return self.export_as_excel(request, excel_data, excel_headers, filename='customers.xlsx')
 
-        excel_response = self.export_as_excel(request, excel_data, excel_headers)
-        if excel_response:
-            return excel_response
+        # ----- Recent Payments -----
+        payments_qs = Payment.objects.select_related('customer').order_by('-payment_date')
+        payments_qs, pay_status, pay_search_query = self.apply_payment_filters(request, payments_qs)
 
-        # Dates
+        # ----- Excel Export for Payments -----
+        if request.GET.get('export') == 'payments_xlsx':
+            payment_excel_data = [
+                [
+                    str(p.customer.customer_id),
+                    str(p.customer.name),
+                    str(p.customer.mobile),
+                    float(p.amount),  # ensure number
+                    str(p.status),
+                    p.payment_date.strftime('%d-%b-%Y') if p.payment_date else 'N/A'
+                ]
+                for p in payments_qs
+            ]
+            payment_excel_headers = ['Customer ID', 'Name', 'Mobile', 'Amount', 'Status', 'Payment Date']
+
+            return self.export_as_excel(request, payment_excel_data, payment_excel_headers, filename='payments.xlsx')
+
+        # ----- Limit Recent Payments -----
+        recent_payments = payments_qs[:10]
+
+        # ----- Counts & Dashboard Data -----
         today = now().date()
         tomorrow = today + timedelta(days=1)
         last_day = monthrange(today.year, today.month)[1]
-        end_of_month = date(today.year, today.month, last_day)
+        end_of_month_date = date(today.year, today.month, last_day)
 
-        # Customers who paid successfully from tomorrow till end of month
-        paid_ids_upcoming = set(
-            Payment.objects.filter(
-                status='success',
-                payment_for_month__range=(tomorrow, end_of_month)
-            ).values_list('customer_id', flat=True)
-        )
+        end_of_today = make_aware(dt.combine(today, dt.max.time()))
+        start_of_tomorrow = make_aware(dt.combine(tomorrow, dt.min.time()))
+        end_of_month = make_aware(dt.combine(end_of_month_date, dt.max.time()))
 
-        # Customers who paid successfully today or earlier
         paid_ids_current = set(
             Payment.objects.filter(
                 status='success',
-                payment_for_month__lte=today
+                payment_date__lte=end_of_today
             ).values_list('customer_id', flat=True)
         )
-
-        upcoming_dues_count = Customer.objects.filter(
-            status='active'
-        ).exclude(id__in=paid_ids_upcoming).count()
+        paid_ids_upcoming = set(
+            Payment.objects.filter(
+                status='success',
+                payment_date__range=(start_of_tomorrow, end_of_month)
+            ).values_list('customer_id', flat=True)
+        )
 
         overdue_customers_count = Customer.objects.filter(
             status='active'
         ).exclude(id__in=paid_ids_current).count()
 
-        # Counts for summary
+        upcoming_dues_count = Customer.objects.filter(
+            status='active'
+        ).exclude(id__in=paid_ids_upcoming).count()
+
         customer_counts = Customer.objects.aggregate(
             total=Count('id'),
             active=Count('id', filter=Q(status='active')),
             inactive=Count('id', filter=Q(status='inactive'))
         )
-
-        # Fetch recent payments
-        recent_payments = Payment.objects.select_related('customer') \
-            .order_by('-payment_date')[:10]
 
         return render(request, 'dashboard/dashboard.html', {
             'form': form,
@@ -282,6 +339,8 @@ class AdminDashboardView(LoginRequiredMixin, CustomerSearchFilterMixin, Customer
             'plan': plan_filter,
             'search': search_query,
             'recent_payments': recent_payments,
+            'pay_status': pay_status,
+            'pay_search': pay_search_query,
         })
 
 class CreateCustomerView(LoginRequiredMixin, View):
