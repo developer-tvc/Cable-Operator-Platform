@@ -1,8 +1,6 @@
 from django.urls import path
 from .views import (
-    AdminLoginView, AdminLogoutView, AdminDashboardView, CustomerListView, CreateCustomerView, UpdateCustomerView,
-    DeleteCustomerView,PlanInfoView,CustomerDetailView,RazorpayPaymentView, RazorpayVerifyPaymentView,
-    CheckCustomerDuplicatesView,PaymentReceiptView, PaymentReceiptPDFView
+    AdminLoginView, AdminLogoutView, AdminDashboardView, CustomerListView, CreateCustomerView, UpdateCustomerView,ToggleCustomerStatusView,PlanInfoView,CustomerDetailView,RazorpayPaymentView, RazorpayVerifyPaymentView,CheckCustomerDuplicatesView,PaymentReceiptView, PaymentReceiptPDFView
 )
 from django.views.generic import TemplateView
 from . import views
@@ -17,10 +15,10 @@ urlpatterns = [
     path('customers/', CustomerListView.as_view(), name='customer_list'),
     path('customers/create/', CreateCustomerView.as_view(), name='create_customer'),
     path('customer/edit/<int:pk>/', UpdateCustomerView.as_view(), name='edit_customer'),
-    path('customers/<str:pk>/delete/', DeleteCustomerView.as_view(), name='delete_customer'),
+    path('customers/<str:pk>/toggle-status/', ToggleCustomerStatusView.as_view(), name='toggle_customer_status'),
     path('customer/detail/<int:pk>/', CustomerDetailView.as_view(), name='customer_detail'),
     path('customers/plan-info/',  PlanInfoView.as_view(),   name='plan_info'),
-    path('customer/check-duplicates/', CheckCustomerDuplicatesView.as_view(), name='check_customer_duplicates'),
+    path('customers/check-duplicates/', CheckCustomerDuplicatesView.as_view(), name='check_customer_duplicates'),
 
     # Payment URLs
     path("pay/<str:customer_id>/", views.RazorpayPaymentView.as_view(), name="gpay_redirect"),
@@ -35,6 +33,4 @@ urlpatterns = [
 
     path("receipt/<int:payment_id>/", PaymentReceiptView.as_view(), name="payment-receipt"),
     path("receipt/<int:payment_id>/download/", PaymentReceiptPDFView.as_view(), name="payment-receipt-download"),
-
-
 ]

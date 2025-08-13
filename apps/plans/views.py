@@ -153,17 +153,25 @@ class PlanUpdateView(UpdateView):
 #         self.object.save()
 #         return redirect(self.success_url)
 
-class PlanDeleteView(View):
+class PlanToggleStatusView(View):
     def post(self, request, pk):
         plan = get_object_or_404(Plan, pk=pk)
 
-        if plan.subscriptions_set.exists():
-            messages.error(request, f"Cannot delete plan '{plan.name}' because it is subscribed by customers.")
-        else:
-            # Deactivate instead of delete
+        if plan.status == 'active':
+            # Prevent deactivation if it has active subscriptions
+            if plan.subscriptions_set.exists():
+                messages.error(request, f"Cannot deactivate plan '{plan.name}' because it has active subscriptions.")
+                return redirect('plan:plan_management')
+
             plan.status = 'inactive'
             plan.save()
             messages.success(request, f"Plan '{plan.name}' deactivated successfully.")
+
+        else:
+            # Activate the plan
+            plan.status = 'active'
+            plan.save()
+            messages.success(request, f"Plan '{plan.name}' activated successfully.")
 
         return redirect(reverse_lazy('plan:plan_management'))
 
