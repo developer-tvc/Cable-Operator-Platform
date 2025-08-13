@@ -453,7 +453,6 @@ document.addEventListener("DOMContentLoaded", function () {
       formToSubmit = null;
     }
   });
-
   /* ---------- EDIT CUSTOMER FORM SUBMIT ---------- */
   const editForm = document.getElementById('editCustomerForm');
   if (editForm) {

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Receipt</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .header { text-align: center; }
+        .details { margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Payment Receipt</h2>
+        <p>Customer ID: {{ customer.customer_id }}</p>
+        <p>Name: {{ customer.name }}</p>
+    </div>
+
+    <div class="details">
+        <p><strong>Payment Date:</strong> {{ payment.payment_date }}</p>
+        <p><strong>Amount Paid:</strong> ₹{{ payment.amount }}</p>
+        <p><strong>Payment Method:</strong> {{ payment.payment_method }}</p>
+        <p><strong>Transaction ID:</strong> {{ payment.upi_transaction_id }}</p>
+    </div>
+
+    <h3>Subscribed Plans</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Plan Name</th>
+                <th>Price</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in subscriptions %}
+            <tr>
+                <td>{{ sub.plan.name }}</td>
+                <td>₹{{ sub.plan.price }}</td>
+                <td>{{ sub.start_date }}</td>
+                <td>{{ sub.end_date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p style="margin-top: 30px;">Thank you for your payment!</p>
+</body>
+</html>

@@ -1,36 +1,137 @@
-{% extends 'base.html' %}
+{% include 'includes/header.html' %}
 {% load static %}
-{% block title %}Payment Failed{% endblock %}
 {% block content %}
-<img src="{% static 'images/fail-img.gif' %}" alt="Failed">
+<div class="no-dues">
+    <div class="Unsuccesfull-container">
 
-<div class="success-payment-card">
-    <div class="animated-pay-circle">
-        <img src="{% static 'images/failmark.gif' %}" alt="" class="success-img">
+        <!-- Header Image -->
+        <div class="no-due-header-img">
+            <img src="{% static 'Image/Unsuccesfull.png' %}" alt="Payment Failed" class="img-fluid mb-3">
+        </div>
+
+        <!-- Main Message -->
+        <div class="no-dues-content text-center">
+            <h3 class="text-gray mb-2">Payment Unsuccessful</h3>
+            {% if error_message %}
+                <h6 class="text-danger">{{ error_message }}</h6>
+            {% else %}
+                <h6 class="text-danger">We couldn't process your payment. Please try again.</h6>
+            {% endif %}
+        </div>
+
+        <!-- Common Issues -->
+        <div class="card common-issues">
+            <h6 class="text-danger mb-3">Common Issues:</h6>
+            <ul class="px-3">
+                <li class="mb-2">Insufficient funds</li>
+                <li class="mb-2">Expired or invalid card</li>
+                <li class="mb-2">Network connection issues</li>
+                <li class="mb-2">Bank security restrictions</li>
+                <li class="mb-2">International cards not supported</li>
+            </ul>
+        </div>
+
+        {% if customer and display_amount %}
+        <!-- Customer Payment Details -->
+        <div class="card amount-card">
+            <div class="amount-card-details d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-2 flex-column">
+                    <h6 class="text-gray">Amount Due</h6>
+                    <h5 class="text-gray">
+                        <i class="fa-solid fa-wallet"></i> ₹{{ display_amount }}
+                    </h5>
+                </div>
+                <div>
+                    <span class="badge pending-badge">Payment Not Done</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Subscriptions -->
+        {% if active_subscriptions %}
+            {% for subscription in active_subscriptions %}
+            <div class="card plan-card">
+                <div class="plan-card-details d-flex justify-content-between align-items-center">
+                    <div class="d-flex gap-2 flex-column">
+                        <h6 class="text-gray">Plan</h6>
+                        <h5 class="text-gray">
+                            <i class="fa-solid fa-box"></i> {{ subscription.plan.name }}
+                        </h5>
+                    </div>
+                    <div>
+                        <span class="text-gray">₹{{ subscription.plan.price }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card due-card">
+                <div class="plan-card-details d-flex justify-content-between align-items-center">
+                    <div class="d-flex gap-2 flex-column">
+                        <h6 class="text-gray">Due Date</h6>
+                        <h5 class="text-gray">
+                            <i class="fa-solid fa-calendar"></i> {{ subscription.end_date|date:"F d, Y" }}
+                        </h5>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <!-- Default Static Content when customer data not available -->
+        <div class="card amount-card">
+            <div class="amount-card-details d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-2 flex-column">
+                    <h6 class="text-gray">Amount</h6>
+                    <div class="flex gap-2">
+                        <h5 class="text-gray"><i class="fa-solid fa-wallet"></i> Rs: 400</h5>
+                    </div>
+                </div>
+                <div>
+                    <span class="badge pending-badge">payment not done</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card plan-card">
+            <div class="plan-card-details d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-2 flex-column">
+                    <h6 class="text-gray">Plan</h6>
+                    <div class="flex gap-2">
+                        <h5 class="text-gray"><i class="fa-solid fa-box"></i> Premium</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card due-card">
+            <div class="plan-card-details d-flex justify-content-between align-items-center">
+                <div class="d-flex gap-2 flex-column">
+                    <h6 class="text-gray">Due Date</h6>
+                    <div class="flex gap-2">
+                        <h5 class="text-gray"><i class="fa-solid fa-calendar"></i> February 15, 2024</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
     </div>
 
-    <div class="success-content">
-        <h3 class="mb-2 fw-bold text-danger">Payment Failed</h3>
-        <h5 class="mb-3">Amount Attempted: <span class="fw-bold">₹{{ payment.amount }}</span></h5>
-
-        <div class="d-flex justify-content-center flex-column mb-3">
-            <p class="fw-bold mb-2">Attempted On</p>
-            <p class="mb-2">{{ payment.payment_date|date:"F d, Y" }}</p>
-        </div>
-
-        <div class="d-flex justify-content-center flex-column mb-3">
-            <p class="fw-bold mb-2">Transaction ID</p>
-            <p class="mb-2">{{ payment.upi_transaction_id }}</p>
-            <p class="mb-2 fw-bold">via {{ payment_method }}</p>
-        </div>
-
-        <div class="d-flex flex-column">
-            <div class="mb-3">
-                <a href="{% url 'retry-payment' customer_id=payment.customer.customer_id %}" class="btn btn-warning w-100 go-back-btn">Retry Payment</a>
-            </div>
-            <div class="mb-3">
-                <a href="{% url 'dashboard' %}" class="btn btn-light w-100 text-dark go-back-btn">Go back to Dashboard</a>
-            </div>
+    <!-- Footer Buttons -->
+    <div class="no-due-footer-container">
+        <div class="footer-button">
+            {% if customer_id %}
+                <a href="{% url 'dashboard:gpay_redirect' customer_id=customer_id %}"
+                   class="btn btn-danger w-100">
+                   <i class="fa-solid fa-mobile-button"></i>
+                   <span class="fw-bold">Retry Payment</span>
+                   {% if display_amount %}<span class="text-small">₹{{ display_amount }}</span>{% endif %}
+                </a>
+            {% else %}
+                <a href="{% url 'dashboard:customer_list' %}" class="btn btn-primary w-100">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span class="fw-bold">Back to Dashboard</span>
+                </a>
+            {% endif %}
         </div>
     </div>
 </div>
