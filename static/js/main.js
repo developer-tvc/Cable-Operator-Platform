@@ -332,8 +332,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  /* ---------- EDIT CUSTOMER MODAL ---------- */
-  $('#editUser').on('shown.bs.modal', function () {
+ /* ---------- EDIT CUSTOMER MODAL ---------- */
+$('#editUser').on('shown.bs.modal', function () {
     const $modal = $('#editUser');
     const $baseSel = $modal.find('#edit_base_plan');
     const $addSel = $modal.find('#edit_add_on_plan');
@@ -342,55 +342,108 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Initialize Select2 for Add-on Plan
     $addSel.select2({
-      dropdownParent: $modal,
-      placeholder: 'Select Add‑on Plans',
-      width: 'resolve',
-      allowClear: true,
+        dropdownParent: $modal,
+        placeholder: 'Select Add-on Plans',
+        width: 'resolve',
+        allowClear: true,
     });
 
-    // Refresh plan info
     function refreshEditPlanInfo() {
-      const baseId = $baseSel.val() || '';
-      const addonIds = $addSel.val() ? $addSel.val().join(',') : '';
+        const baseId = $baseSel.val() || '';
+        const addonIds = $addSel.val() ? $addSel.val().join(',') : '';
 
-      if (!baseId) {
-        $dueAmt.val('');
-        $revisedAmt.val('');
-        return;
-      }
+        if (!baseId) {
+            $dueAmt.val('');
+            $revisedAmt.val('');
+            return;
+        }
 
-      fetch(`/dashboard/customers/plan-info/?base_plan=${baseId}&add_on_plan=${addonIds}`)
-        .then(response => response.json())
-        .then(data => {
-          const due = parseFloat(data.due_amount || 0);
-          $dueAmt.val(due.toFixed(2));
+        fetch(`/dashboard/customers/plan-info/?base_plan=${baseId}&add_on_plan=${addonIds}`)
+            .then(response => response.json())
+            .then(data => {
+                const due = parseFloat(data.due_amount || 0);
+                $dueAmt.val(due.toFixed(2));
 
-          // Only set revised if it's currently empty (so we don't overwrite server/user provided value)
-          const revisedVal = ($revisedAmt.val() || '').toString().trim();
-          if (!revisedVal) {
-            $revisedAmt.val(due.toFixed(2));
-          }
-        })
-        .catch(err => {
-          console.error('Error fetching plan info for edit modal:', err);
-        });
+                // Only set revised if it's currently empty
+                const revisedVal = ($revisedAmt.val() || '').toString().trim();
+                if (!revisedVal) {
+                    $revisedAmt.val(due.toFixed(2));
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching plan info for edit modal:', err);
+            });
     }
 
-    // Bind change events (use namespaced handlers and remove previous handlers to avoid duplicates)
+    // Bind change events
     $baseSel.off('.editPlan').on('change.editPlan', refreshEditPlanInfo);
-    $addSel.off('.editPlan').on('change.editPlan select2:select.editPlan select2:unselect.editPlan', refreshEditPlanInfo);;
-  });
+    $addSel.off('.editPlan').on('change.editPlan select2:select.editPlan select2:unselect.editPlan', refreshEditPlanInfo);
+
+    // ✅ Call immediately on modal open so pre-selected add-ons are included
+    refreshEditPlanInfo();
+});
 
 
-  /* ---------- SELECT2 INIT FOR EDIT MODAL ---------- */
-  $('#editUser').on('shown.bs.modal', function () {
-    $('#edit_add_on_plan').select2({
-      dropdownParent: $('#editUser'),
-      placeholder: 'edit Add-on Plans',
-      width: 'resolve',
-      allowClear: true,
-    });
-  });
+//
+//  /* ---------- EDIT CUSTOMER MODAL ---------- */
+//  $('#editUser').on('shown.bs.modal', function () {
+//    const $modal = $('#editUser');
+//    const $baseSel = $modal.find('#edit_base_plan');
+//    const $addSel = $modal.find('#edit_add_on_plan');
+//    const $dueAmt = $modal.find('#edit_due_amount');
+//    const $revisedAmt = $modal.find('#edit_revised_amount');
+//
+//    // Initialize Select2 for Add-on Plan
+//    $addSel.select2({
+//      dropdownParent: $modal,
+//      placeholder: 'Select Add‑on Plans',
+//      width: 'resolve',
+//      allowClear: true,
+//    });
+//
+//    // Refresh plan info
+//    function refreshEditPlanInfo() {
+//      const baseId = $baseSel.val() || '';
+//      const addonIds = $addSel.val() ? $addSel.val().join(',') : '';
+//
+//      if (!baseId) {
+//        $dueAmt.val('');
+//        $revisedAmt.val('');
+//        return;
+//      }
+//
+//      fetch(`/dashboard/customers/plan-info/?base_plan=${baseId}&add_on_plan=${addonIds}`)
+//        .then(response => response.json())
+//        .then(data => {
+//          const due = parseFloat(data.due_amount || 0);
+//          $dueAmt.val(due.toFixed(2));
+//
+//          // Only set revised if it's currently empty (so we don't overwrite server/user provided value)
+//          const revisedVal = ($revisedAmt.val() || '').toString().trim();
+//          if (!revisedVal) {
+//            $revisedAmt.val(due.toFixed(2));
+//          }
+//        })
+//        .catch(err => {
+//          console.error('Error fetching plan info for edit modal:', err);
+//        });
+//    }
+//
+//    // Bind change events (use namespaced handlers and remove previous handlers to avoid duplicates)
+//    $baseSel.off('.editPlan').on('change.editPlan', refreshEditPlanInfo);
+//    $addSel.off('.editPlan').on('change.editPlan select2:select.editPlan select2:unselect.editPlan', refreshEditPlanInfo);;
+//  });
+//
+//
+//  /* ---------- SELECT2 INIT FOR EDIT MODAL ---------- */
+//  $('#editUser').on('shown.bs.modal', function () {
+//    $('#edit_add_on_plan').select2({
+//      dropdownParent: $('#editUser'),
+//      placeholder: 'edit Add-on Plans',
+//      width: 'resolve',
+//      allowClear: true,
+//    });
+//  });
 
   /* ---------- DELETE CONFIRMATION ---------- */
   const deleteModal = new bootstrap.Modal(document.getElementById("DeactivateModal"));
