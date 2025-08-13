@@ -219,11 +219,10 @@ class AdminDashboardView(LoginRequiredMixin, CustomerSearchFilterMixin, Customer
                 c['due_amount'],
                 c['status'],
                 c['last_payment'],
-                c['qr_code_url'],
             ]
             for c in enriched_customers
         ]
-        excel_headers = ['Customer ID', 'Name', 'Mobile', 'Plan Details', 'Payment Status', 'Due Amount', 'Customer Status', 'Last Payment', 'QR Code']
+        excel_headers = ['Customer ID', 'Name', 'Mobile', 'Plan Details', 'Payment Status', 'Due Amount', 'Customer Status', 'Last Payment']
 
         excel_response = self.export_as_excel(request, excel_data, excel_headers)
         if excel_response:
