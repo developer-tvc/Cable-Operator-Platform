@@ -94,7 +94,7 @@
 
       <div class="d-flex gap-2 align-items-center align-items-center">
         <div class="export-btn">
-          <a href="?export=xlsx{% if status %}&status={{ status }}{% endif %}{% if plan %}&plan={{ plan }}{% endif %}{% if search %}&search={{ search }}{% endif %}"
+          <a href="?export=customers_xlsx{% if status %}&status={{ status }}{% endif %}{% if plan %}&plan={{ plan }}{% endif %}{% if search %}&search={{ search }}{% endif %}"
             class="btn btn-primary">
             <i class="fa-solid fa-cloud-arrow-down"></i> Export
           </a>
@@ -142,9 +142,9 @@
             </td>
             <td>
                 {% if customer.payment_status == "No Dues" %}
-                    <span class="pending-badge px-3 py-2 fs-6">No Dues</span>
+                    <span class="active-badge">No Dues</span>
                 {% elif customer.payment_status == "Due" %}
-                    <span class="pending-badge px-3 py-2 fs-6">Due</span>
+                    <span class="pending-badge">Due</span>
                 {% else %}
                     N/A
                 {% endif %}
@@ -158,8 +158,8 @@
               {% endif %}
             </td>
             <td>
-              {% if last_payment %}
-                {{ last_payment.payment_date|date:"M j, Y" }}
+              {% if customer.last_payment %}
+                {{ customer.last_payment.payment_date|date:"M j, Y" }}
               {% else %}
                 N/A
               {% endif %}
@@ -221,24 +221,27 @@
     <h5 class="text-gray mb-3">Recent Payments</h5>
     <!--Filter Section-->
     <div class="filter-section d-flex justify-content-between">
-      <div class="search-filter">
-        <input type="text" placeholder="Search Customers By Name, ID " class="form-control search-box">
-      </div>
+      <form method="get" class="search-filter">
+        <input type="text" name="pay_search" placeholder="Search by Customer Name, ID, Phone"
+              class="form-control search-box" value="{{ pay_search|default:'' }}">
+      </form>
+
       <div class="d-flex gap-2 align-items-center align-items-center">
         <div class="export-btn">
-          <button type="button" class="btn btn-primary"><i class="fa-solid fa-cloud-arrow-down"></i>
-            Export</button>
+          <a href="?export=payments_xlsx{% if pay_status %}&status={{ pay_status }}{% endif %}{% if pay_search %}&search={{ pay_search }}{% endif %}{% if pay_start %}&start_date={{ pay_start }}{% endif %}{% if pay_end %}&end_date={{ pay_end }}{% endif %}"
+            class="btn btn-primary">
+            <i class="fa-solid fa-cloud-arrow-down"></i> Export
+          </a>
         </div>
-        <div class="d-flex gap-2 align-items-center">
-          <i class="fa-solid fa-filter text-gray"></i>
-        </div>
-        <div>
-          <select class="form-select bg-light-blue">
+
+        <form method="get" class="d-inline">
+          <select name="status" class="form-select bg-light-blue" onchange="this.form.submit()">
             <option value="">Choose Status</option>
-            <option value="">Active</option>
-            <option value="">Inactive</option>
+            <option value="success" {% if pay_status == "success" %}selected{% endif %}>Completed</option>
+            <option value="initiated" {% if pay_status == "initiated" %}selected{% endif %}>Pending</option>
+            <option value="failed" {% if pay_status == "failed" %}selected{% endif %}>Failed</option>
           </select>
-        </div>
+        </form>
       </div>
     </div>
 
@@ -251,36 +254,41 @@
             <th>Amount</th>
             <th>Method</th>
             <th>Status</th>
-            <th>Date & time</th>
+            <th>Date & Time</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td> <span class="text-blue"> P001</span></td>
-            <td>John Smith</td>
-            <td>₹300</td>
-            <td>Card</td>
-            <td>
-              <span class="badge active-badge"><i class="fa-solid fa-check"></i> Completed</span>
-            </td>
-            <td>
-              <p class="mb-1">2025/07/25</p>
-              <p class="text-small">14:30 PM</p>
-            </td>
-          </tr>
-          <tr>
-            <td> <span class="text-blue"> P001</span></td>
-            <td>John Smith</td>
-            <td>₹300</td>
-            <td>Card</td>
-            <td>
-              <span class="badge inactive-badge"><i class="fa-solid fa-spinner"></i> Pending</span>
-            </td>
-            <td>
-              <p class="mb-1">2025/07/25</p>
-              <p class="text-small">14:30 PM</p>
-            </td>
-          </tr>
+          {% for payment in recent_payments %}
+            <tr>
+              <td><span class="text-blue">P{{ payment.id|stringformat:"04d" }}</span></td>
+              <td>{{ payment.customer.name }}</td>
+              <td>₹{{ payment.amount }}</td>
+              <td>{{ payment.get_payment_method_display }}</td>
+              <td>
+                {% if payment.status == 'success' %}
+                  <span class="badge active-badge">
+                    <i class="fa-solid fa-check"></i> Completed
+                  </span>
+                {% elif payment.status == 'initiated' %}
+                  <span class="badge inactive-badge">
+                    <i class="fa-solid fa-spinner"></i> Pending
+                  </span>
+                {% elif payment.status == 'failed' %}
+                  <span class="badge text-danger">
+                    <i class="fa-solid fa-xmark"></i> Failed
+                  </span>
+                {% else %}
+                  <span class="badge text-muted">
+                    <i class="fa-solid fa-question"></i> Unknown
+                  </span>
+                {% endif %}
+              </td>
+              <td>
+                <p class="mb-1">{{ payment.payment_date|date:"Y/m/d" }}</p>
+                <p class="text-small">{{ payment.payment_date|time:"h:i A" }}</p>
+              </td>
+            </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
