@@ -670,7 +670,7 @@ async function validateCustomerCreateForm(form, isEdit = false) {
   // 🔍 Skip duplicate check if editing
   if (!isEdit && isValid) {
     try {
-      const response = await fetch("/dashboard/customers/check-duplicates/", {
+      const response = await fetch("/dashboard/customer/check-duplicates/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
