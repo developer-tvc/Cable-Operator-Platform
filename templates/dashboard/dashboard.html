@@ -272,9 +272,13 @@
                   <span class="badge inactive-badge">
                     <i class="fa-solid fa-spinner"></i> Pending
                   </span>
-                {% else %}
+                {% elif payment.status == 'failed' %}
                   <span class="badge text-danger">
                     <i class="fa-solid fa-xmark"></i> Failed
+                  </span>
+                {% else %}
+                  <span class="badge text-muted">
+                    <i class="fa-solid fa-question"></i> Unknown
                   </span>
                 {% endif %}
               </td>
