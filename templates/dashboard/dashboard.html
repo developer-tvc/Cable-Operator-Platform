@@ -96,7 +96,7 @@
 
       <div class="d-flex gap-2 align-items-center align-items-center">
         <div class="export-btn">
-          <a href="?export=xlsx{% if status %}&status={{ status }}{% endif %}{% if plan %}&plan={{ plan }}{% endif %}{% if search %}&search={{ search }}{% endif %}"
+          <a href="?export=customers_xlsx{% if status %}&status={{ status }}{% endif %}{% if plan %}&plan={{ plan }}{% endif %}{% if search %}&search={{ search }}{% endif %}"
             class="btn btn-primary">
             <i class="fa-solid fa-cloud-arrow-down"></i> Export
           </a>
@@ -144,9 +144,9 @@
             </td>
             <td>
                 {% if customer.payment_status == "No Dues" %}
-                    <span class="pending-badge px-3 py-2 fs-6">No Dues</span>
+                    <span class="active-badge">No Dues</span>
                 {% elif customer.payment_status == "Due" %}
-                    <span class="pending-badge px-3 py-2 fs-6">Due</span>
+                    <span class="pending-badge">Due</span>
                 {% else %}
                     N/A
                 {% endif %}
@@ -160,8 +160,8 @@
               {% endif %}
             </td>
             <td>
-              {% if last_payment %}
-                {{ last_payment.payment_date|date:"M j, Y" }}
+              {% if customer.last_payment %}
+                {{ customer.last_payment.payment_date|date:"M j, Y" }}
               {% else %}
                 N/A
               {% endif %}
@@ -223,24 +223,27 @@
     <h5 class="text-gray mb-3">Recent Payments</h5>
     <!--Filter Section-->
     <div class="filter-section d-flex justify-content-between">
-      <div class="search-filter">
-        <input type="text" placeholder="Search Customers By Name, ID " class="form-control search-box">
-      </div>
+      <form method="get" class="search-filter">
+        <input type="text" name="pay_search" placeholder="Search by Customer Name, ID, Phone"
+              class="form-control search-box" value="{{ pay_search|default:'' }}">
+      </form>
+
       <div class="d-flex gap-2 align-items-center align-items-center">
         <div class="export-btn">
-          <button type="button" class="btn btn-primary"><i class="fa-solid fa-cloud-arrow-down"></i>
-            Export</button>
+          <a href="?export=payments_xlsx{% if pay_status %}&status={{ pay_status }}{% endif %}{% if pay_search %}&search={{ pay_search }}{% endif %}{% if pay_start %}&start_date={{ pay_start }}{% endif %}{% if pay_end %}&end_date={{ pay_end }}{% endif %}"
+            class="btn btn-primary">
+            <i class="fa-solid fa-cloud-arrow-down"></i> Export
+          </a>
         </div>
-        <div class="d-flex gap-2 align-items-center">
-          <i class="fa-solid fa-filter text-gray"></i>
-        </div>
-        <div>
-          <select class="form-select bg-light-blue">
+
+        <form method="get" class="d-inline">
+          <select name="status" class="form-select bg-light-blue" onchange="this.form.submit()">
             <option value="">Choose Status</option>
-            <option value="">Active</option>
-            <option value="">Inactive</option>
+            <option value="success" {% if pay_status == "success" %}selected{% endif %}>Completed</option>
+            <option value="initiated" {% if pay_status == "initiated" %}selected{% endif %}>Pending</option>
+            <option value="failed" {% if pay_status == "failed" %}selected{% endif %}>Failed</option>
           </select>
-        </div>
+        </form>
       </div>
     </div>
 
