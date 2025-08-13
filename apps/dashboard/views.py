@@ -23,15 +23,20 @@ from apps.subscriptions.models import Subscription
 from apps.plans.models import Plan
 from apps.dashboard.utils import generate_customer_qr
 import razorpay
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+from reportlab.platypus import Table, TableStyle
 import json
-from django.template.loader import render_to_string
-from weasyprint import HTML
 from dateutil.relativedelta import relativedelta
 from django.urls import reverse
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from decimal import Decimal,ROUND_HALF_UP
 from django.utils import timezone
+from datetime import datetime
+
 
 # Admin Login View
 class AdminLoginView(View):
@@ -814,20 +819,91 @@ class PaymentReceiptView(View):
             "subscriptions": payment.subscriptions.all()
         })
 
+
 class PaymentReceiptPDFView(View):
     def get(self, request, payment_id):
+        # Fetch payment object
         payment = get_object_or_404(Payment, id=payment_id)
-        html_content = render_to_string("payments/receipt.html", {
-            "payment": payment,
-            "customer": payment.customer,
-            "subscriptions": payment.subscriptions.all()
-        })
 
-        pdf_file = HTML(string=html_content).write_pdf()
-
+        # Prepare HTTP response for PDF download
         filename = f"Receipt_{payment.customer.customer_id}_{payment.id}.pdf"
-        response = HttpResponse(pdf_file, content_type="application/pdf")
+        response = HttpResponse(content_type="application/pdf")
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+        # Create PDF
+        p = canvas.Canvas(response, pagesize=A4)
+        width, height = A4
+        y = height - inch
+
+        # ===== HEADER =====
+        p.setFont("Helvetica-Bold", 18)
+        p.drawCentredString(width / 2.0, y, "PAYMENT RECEIPT")
+        y -= 30
+
+        p.setFont("Helvetica", 10)
+        p.drawCentredString(width / 2.0, y, f"Generated on: {datetime.now().strftime('%b %d, %Y')}")
+        y -= 40
+
+        # ===== CUSTOMER DETAILS =====
+        p.setFont("Helvetica-Bold", 12)
+        p.drawString(50, y, "Customer Information")
+        y -= 15
+        p.setFont("Helvetica", 11)
+        p.drawString(50, y, f"Customer ID: {payment.customer.customer_id}")
+        y -= 15
+        p.drawString(50, y, f"Name: {payment.customer.name}")
+        y -= 30
+
+        # ===== PAYMENT DETAILS =====
+        p.setFont("Helvetica-Bold", 12)
+        p.drawString(50, y, "Payment Information")
+        y -= 15
+        p.setFont("Helvetica", 11)
+        # p.drawString(50, y, f"Payment Date: {payment.payment_date.strftime('%b %d, %Y')}")
+        y -= 15
+        p.drawString(50, y, f"Amount Paid:{payment.amount}")
+        y -= 15
+        p.drawString(50, y, f"Payment Method: {payment.payment_method}")
+        y -= 15
+        p.drawString(50, y, f"Transaction ID: {payment.upi_transaction_id}")
+        y -= 30
+
+        # ===== SUBSCRIBED PLANS TABLE =====
+        p.setFont("Helvetica-Bold", 12)
+        p.drawString(50, y, "Subscribed Plans")
+        y -= 20
+
+        data = [["Plan Name", "Price", "Start Date", "End Date"]]
+        for sub in payment.subscriptions.all():
+            data.append([
+                sub.plan.name,
+                f"{sub.plan.price}",
+                sub.start_date.strftime('%b %d, %Y'),
+                sub.end_date.strftime('%b %d, %Y')
+            ])
+
+        table = Table(data, colWidths=[150, 100, 120, 120])
+        table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f2f2f2")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 10),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ]))
+        table.wrapOn(p, width, height)
+        table.drawOn(p, 50, y - (len(data) * 18))
+        y -= (len(data) * 18) + 40
+
+        # ===== FOOTER =====
+        p.setFont("Helvetica-Oblique", 11)
+        p.drawString(50, y, "Thank you for your payment. Please keep this receipt for your records.")
+
+        # Save PDF
+        p.showPage()
+        p.save()
+
         return response
 
 class PaymentSuccessView(View):
