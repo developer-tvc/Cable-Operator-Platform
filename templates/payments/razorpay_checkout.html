@@ -142,12 +142,10 @@
 
             // ===== EVENT LISTENERS =====
             rzp.on('payment.submit', function (response) {
-                console.log("📝 Payment submitted:", response.method);
+                console.log("Payment submitted:", response.method);
             });
 
             rzp.on('payment.failed', function (response) {
-                console.error("❌ === PAYMENT FAILED EVENT ===");
-                console.error("Payment failed:", response.error);
 
                 let errorMsg = "Payment failed";
                 if (response.error && response.error.description) {
@@ -156,7 +154,6 @@
                     errorMsg = response.error.code;
                 }
 
-                console.log("Redirecting to failure page with error:", errorMsg);
                 // Redirect to failure page with customer_id
                 const failureUrl = new URL("{% url 'dashboard:payment_failed_page' %}", window.location.origin);
                 failureUrl.searchParams.append('error', errorMsg);
@@ -164,13 +161,9 @@
 
                 window.location.href = failureUrl.toString();
             });
-
-            // ===== OPEN PAYMENT DIALOG =====
-            console.log("🚀 Opening Razorpay checkout...");
             rzp.open();
 
         } catch (error) {
-            console.error("💥 Error creating Razorpay instance:", error);
             // Redirect to failure page with customer_id
             const failureUrl = new URL("{% url 'dashboard:payment_failed_page' %}", window.location.origin);
             failureUrl.searchParams.append('error', "Failed to initialize payment system");
