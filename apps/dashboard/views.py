@@ -436,7 +436,7 @@ ExcelExportMixin,PaymentSearchFilterMixin,View):
             return self.export_as_excel(request, excel_data, excel_headers, filename='customers.xlsx')
 
         # ----- Recent Payments -----
-        payments_qs = Payment.objects.select_related('customer').order_by('-payment_date')
+        payments_qs = (Payment.objects.select_related('customer').filter(customer__status='active').order_by('-payment_date'))
         payments_qs, pay_status, pay_search_query = self.apply_payment_filters(request, payments_qs)
 
         # ----- Excel Export for Payments -----
@@ -457,7 +457,7 @@ ExcelExportMixin,PaymentSearchFilterMixin,View):
             return self.export_as_excel(request, payment_excel_data, payment_excel_headers, filename='payments.xlsx')
 
         # ----- Limit Recent Payments -----
-        recent_payments = payments_qs[:10]
+        recent_payments = payments_qs.filter(status__in=["success", "initiated", "failed"])[:10]
 
         # ----- Counts & Dashboard Data -----
         today = timezone.localdate()
