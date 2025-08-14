@@ -387,8 +387,8 @@
                                 </span>
                             </td>
                             <td>
-                              {% if last_payment %}
-                                {{ last_payment.payment_date|date:"M j, Y" }}
+                              {% if customer.last_payment %}
+                                {{ customer.last_payment.payment_date|date:"M j, Y" }}
                               {% else %}
                                 N/A
                               {% endif %}
