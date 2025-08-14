@@ -61,7 +61,7 @@
         </div>
 
         <h5 class="text-gray mobile-dashboard-font">Monthly Revenue</h5>
-        <h5 class="text-gray fw-bold font-lg">15,000</h5>
+        <h5 class="text-gray fw-bold font-lg">₹{{ monthly_revenue|floatformat:2 }}</h5>
       </div>
     </div>
 
@@ -254,7 +254,7 @@
             <th>Amount</th>
             <th>Method</th>
             <th>Status</th>
-            <th>Date & Time</th>
+            <th>Date</th>
           </tr>
         </thead>
         <tbody>
@@ -265,27 +265,28 @@
               <td>₹{{ payment.amount }}</td>
               <td>{{ payment.get_payment_method_display }}</td>
               <td>
-                {% if payment.status == 'success' %}
-                  <span class="badge active-badge">
-                    <i class="fa-solid fa-check"></i> Completed
-                  </span>
-                {% elif payment.status == 'initiated' %}
-                  <span class="badge inactive-badge">
-                    <i class="fa-solid fa-spinner"></i> Pending
-                  </span>
-                {% elif payment.status == 'failed' %}
-                  <span class="badge text-danger">
-                    <i class="fa-solid fa-xmark"></i> Failed
-                  </span>
-                {% else %}
-                  <span class="badge text-muted">
-                    <i class="fa-solid fa-question"></i> Unknown
-                  </span>
-                {% endif %}
+                {% with payment.get_status_display as status_label %}
+                  {% if status_label == 'Success' %}
+                    <span class="badge active-badge">
+                      <i class="fa-solid fa-check"></i> Completed
+                    </span>
+                  {% elif status_label == 'Initiated' %}
+                    <span class="badge inactive-badge">
+                      <i class="fa-solid fa-spinner"></i> Pending
+                    </span>
+                  {% elif status_label == 'Failed' %}
+                    <span class="badge text-danger">
+                      <i class="fa-solid fa-xmark"></i> Failed
+                    </span>
+                  {% else %}
+                    <span class="badge text-muted">
+                      <i class="fa-solid fa-question"></i> Unknown
+                    </span>
+                  {% endif %}
+                {% endwith %}
               </td>
               <td>
-                <p class="mb-1">{{ payment.payment_date|date:"Y/m/d" }}</p>
-                <p class="text-small">{{ payment.payment_date|time:"h:i A" }}</p>
+                <p class="mb-1">{{ payment.payment_date|date:"M j, Y" }}</p>
               </td>
             </tr>
           {% endfor %}
