@@ -1,4 +1,4 @@
-from django.db.models import Count, Q, Prefetch
+from django.db.models import Count, Q, Prefetch, Sum
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from calendar import monthrange
@@ -258,7 +258,7 @@ class CustomerDataMixin:
                 'plan_details': plan_list,
                 'due_amount': f"{due_amount:.2f}",
                 'final_amount': f"{final_amount:.2f}",
-                'last_payment': last_payment_display,
+                'last_payment': last_payment,
                 'payment_status': payment_status,
                 'total_revised_amount': f"{sum(Decimal(sub.revised_amount or 0) for sub in active_subs):.2f}",
                 'qr_code_url': (
@@ -370,7 +370,7 @@ ExcelExportMixin,PaymentSearchFilterMixin,View):
                     str(p.customer.customer_id),
                     str(p.customer.name),
                     str(p.customer.mobile),
-                    float(p.amount),  # ensure number
+                    float(p.amount),
                     str(p.status),
                     p.payment_date.strftime('%d-%b-%Y') if p.payment_date else 'N/A'
                 ]
@@ -384,41 +384,57 @@ ExcelExportMixin,PaymentSearchFilterMixin,View):
         recent_payments = payments_qs[:10]
 
         # ----- Counts & Dashboard Data -----
-        today = now().date()
+        today = timezone.localdate()
         tomorrow = today + timedelta(days=1)
-        last_day = monthrange(today.year, today.month)[1]
-        end_of_month_date = date(today.year, today.month, last_day)
 
-        end_of_today = make_aware(dt.combine(today, dt.max.time()))
-        start_of_tomorrow = make_aware(dt.combine(tomorrow, dt.min.time()))
-        end_of_month = make_aware(dt.combine(end_of_month_date, dt.max.time()))
+        # Month boundaries (aware datetimes)
+        first_day_of_month = today.replace(day=1)
+        last_day_of_month = date(today.year, today.month, monthrange(today.year, today.month)[1])
+        start_of_month = timezone.make_aware(dt.combine(first_day_of_month, dt.min.time()))
+        end_of_month = timezone.make_aware(dt.combine(last_day_of_month, dt.max.time()))
+        end_of_today = timezone.make_aware(dt.combine(today, dt.max.time()))
+        start_of_tomorrow = timezone.make_aware(dt.combine(tomorrow, dt.min.time()))
 
-        paid_ids_current = set(
+        # Preload active & inactive customer IDs
+        active_customer_ids = set(Customer.objects.filter(status='active').values_list('id', flat=True))
+        inactive_count = Customer.objects.filter(status='inactive').count()
+
+        # Paid customers for this month (only active ones matter here)
+        already_paid_ids = set(
             Payment.objects.filter(
                 status='success',
-                payment_date__lte=end_of_today
+                customer_id__in=active_customer_ids,
+                payment_date__range=(start_of_month, end_of_today)
             ).values_list('customer_id', flat=True)
         )
+
+        # Overdue = active customers not paid by today
+        overdue_customers_count = len(active_customer_ids - already_paid_ids)
+
+        # Paid customers later this month (active only)
         paid_ids_upcoming = set(
             Payment.objects.filter(
                 status='success',
+                customer_id__in=active_customer_ids,
                 payment_date__range=(start_of_tomorrow, end_of_month)
             ).values_list('customer_id', flat=True)
         )
 
-        overdue_customers_count = Customer.objects.filter(
-            status='active'
-        ).exclude(id__in=paid_ids_current).count()
+        # Upcoming dues = active customers who haven't paid at all this month
+        upcoming_dues_count = len(active_customer_ids - already_paid_ids - paid_ids_upcoming)
 
-        upcoming_dues_count = Customer.objects.filter(
-            status='active'
-        ).exclude(id__in=paid_ids_upcoming).count()
+        # Monthly revenue = all successful payments in current month (active & inactive)
+        monthly_revenue = Payment.objects.filter(
+            status='success',
+            payment_date__range=(start_of_month, end_of_month)
+        ).aggregate(total=Sum('amount'))['total'] or 0
 
-        customer_counts = Customer.objects.aggregate(
-            total=Count('id'),
-            active=Count('id', filter=Q(status='active')),
-            inactive=Count('id', filter=Q(status='inactive'))
-        )
+        # Customer counts
+        customer_counts = {
+            'total': len(active_customer_ids) + inactive_count,
+            'active': len(active_customer_ids),
+            'inactive': inactive_count
+        }
 
         return render(request, 'dashboard/dashboard.html', {
             'form': form,
@@ -435,6 +451,7 @@ ExcelExportMixin,PaymentSearchFilterMixin,View):
             'recent_payments': recent_payments,
             'pay_status': pay_status,
             'pay_search': pay_search_query,
+            'monthly_revenue': monthly_revenue,
         })
 
 class CreateCustomerView(LoginRequiredMixin, View):
