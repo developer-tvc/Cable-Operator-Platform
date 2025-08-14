@@ -384,7 +384,7 @@ $('#editUser').on('shown.bs.modal', function () {
 });
 
 
-//
+
 //  /* ---------- EDIT CUSTOMER MODAL ---------- */
 //  $('#editUser').on('shown.bs.modal', function () {
 //    const $modal = $('#editUser');
@@ -434,16 +434,16 @@ $('#editUser').on('shown.bs.modal', function () {
 //    $addSel.off('.editPlan').on('change.editPlan select2:select.editPlan select2:unselect.editPlan', refreshEditPlanInfo);;
 //  });
 //
-//
-//  /* ---------- SELECT2 INIT FOR EDIT MODAL ---------- */
-//  $('#editUser').on('shown.bs.modal', function () {
-//    $('#edit_add_on_plan').select2({
-//      dropdownParent: $('#editUser'),
-//      placeholder: 'edit Add-on Plans',
-//      width: 'resolve',
-//      allowClear: true,
-//    });
-//  });
+
+  /* ---------- SELECT2 INIT FOR EDIT MODAL ---------- */
+  $('#editUser').on('shown.bs.modal', function () {
+    $('#edit_add_on_plan').select2({
+      dropdownParent: $('#editUser'),
+      placeholder: 'edit Add-on Plans',
+      width: 'resolve',
+      allowClear: true,
+    });
+  });
 
   /* ---------- DELETE CONFIRMATION ---------- */
   const deleteModal = new bootstrap.Modal(document.getElementById("DeactivateModal"));

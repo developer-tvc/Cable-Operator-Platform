@@ -27,10 +27,30 @@
 
         // Enable multiple payment methods
         method: {
-            card: true,
-            netbanking: true,
-            wallet: true,
+            card: false,
+            netbanking: false,
+            wallet: false,
             upi: true
+        },
+        // Further restrict UPI to only Google Pay
+        config: {
+            display: {
+                blocks: {
+                    upi: {
+                        name: "Pay via UPI",
+                        instruments: [
+                            {
+                                method: "upi",
+                                apps: ["gpay"] // Only Google Pay
+                            }
+                        ]
+                    }
+                },
+                sequence: ["upi"], // Only show UPI block
+                preferences: {
+                    show_default_blocks: false // Hide others
+                }
+            }
         },
 
         // ===== SUCCESS HANDLER =====
