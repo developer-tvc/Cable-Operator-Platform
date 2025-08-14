@@ -100,6 +100,90 @@ class CustomerSearchFilterMixin:
                c.latest_subscriptions[0].plan and
                c.latest_subscriptions[0].plan.plan_type == plan_type
         ]
+#
+# class CustomerDataMixin:
+#     def get_enriched_customer_data(self, customers):
+#         customer_data = []
+#         today = timezone.now().date()
+#
+#         # First & last day of current month
+#         month_start = date(today.year, today.month, 1)
+#         last_day = monthrange(today.year, today.month)[1]
+#         month_end = date(today.year, today.month, last_day)
+#
+#         # Aware datetimes
+#         start_of_month = timezone.make_aware(dt.combine(month_start, dt.min.time()))
+#         end_of_month = timezone.make_aware(dt.combine(month_end, dt.max.time()))
+#
+#         for customer in customers:
+#             active_subs = customer.subscriptions.filter(is_active=True).select_related('plan')
+#             plan_count = active_subs.count()
+#
+#             total_revised_amount = Decimal("0.00")
+#             if active_subs.exists():
+#                 # If revised_amount is set in any subscription, assume it’s the total for all
+#                 first_revised = active_subs.first().revised_amount
+#                 if first_revised:
+#                     total_revised_amount = Decimal(first_revised or 0)
+#                 else:
+#                     # Otherwise sum prices normally
+#                     total_revised_amount = sum(Decimal(sub.revised_amount or 0) for sub in active_subs)
+#
+#             if total_revised_amount > 0 and plan_count > 0:
+#                 split_amount = (total_revised_amount / plan_count).quantize(Decimal("0.01"))
+#                 due_amount = Decimal("0.00")
+#                 plan_list = []
+#                 for sub in active_subs:
+#                     due_amount += split_amount
+#                     plan_list.append(f"{sub.plan.name} (₹{split_amount:.2f})")
+#             else:
+#                 due_amount = Decimal("0.00")
+#                 plan_list = []
+#                 for sub in active_subs:
+#                     amount = Decimal(sub.plan.price)
+#                     due_amount += amount
+#                     plan_list.append(f"{sub.plan.name} (₹{amount:.2f})")
+#
+#             final_amount = due_amount
+#
+#             # Last successful payment
+#             last_payment = Payment.objects.filter(
+#                 customer=customer, status='success'
+#             ).order_by('-payment_date').first()
+#             last_payment_display = (
+#                 last_payment.payment_date.strftime('%d-%b-%Y')
+#                 if last_payment and last_payment.payment_date else 'N/A'
+#             )
+#
+#             # Payment status
+#             if Payment.objects.filter(
+#                     customer=customer,
+#                     payment_date__range=(start_of_month, end_of_month),
+#                     status='success'
+#             ).exists():
+#                 payment_status = "No Dues"
+#             else:
+#                 payment_status = "Due"
+#
+#             customer_data.append({
+#                 'id': customer.id,
+#                 'customer_id': customer.customer_id,
+#                 'name': customer.name,
+#                 'mobile': customer.mobile,
+#                 'status': customer.status,
+#                 'plan_details': plan_list,
+#                 'due_amount': f"{due_amount:.2f}",
+#                 'final_amount': f"{final_amount:.2f}",
+#                 'last_payment': last_payment,
+#                 'payment_status': payment_status,
+#                 'total_revised_amount': f"{total_revised_amount:.2f}",
+#                 'qr_code_url': (
+#                     customer.qr_code.image.url
+#                     if hasattr(customer, 'qr_code') and customer.qr_code and customer.qr_code.image
+#                     else None
+#                 ),
+#             })
+#         return customer_data
 
 class CustomerDataMixin:
     def get_enriched_customer_data(self, customers):
@@ -117,31 +201,21 @@ class CustomerDataMixin:
 
         for customer in customers:
             active_subs = customer.subscriptions.filter(is_active=True).select_related('plan')
-            plan_count = active_subs.count()
 
-            total_revised_amount = sum(Decimal(sub.revised_amount or 0) for sub in active_subs)
             due_amount = Decimal("0.00")
             plan_list = []
 
-            if total_revised_amount > 0 and plan_count > 0:
-                # Split revised amount equally among all plans
-                split_amount = (total_revised_amount / plan_count).quantize(Decimal("0.01"))
-                for sub in active_subs:
-                    due_amount += split_amount
-                    plan_list.append(f"{sub.plan.name} (₹{split_amount:.2f})")
-            else:
-                # Use original plan amounts
-                for sub in active_subs:
-                    amount = Decimal(sub.plan.price)
-                    due_amount += amount
-                    plan_list.append(f"{sub.plan.name} (₹{amount:.2f})")
-
-            final_amount = due_amount
+            for sub in active_subs:
+                # Use revised amount if set, else use plan price
+                amount = Decimal(sub.revised_amount) if sub.revised_amount else Decimal(sub.plan.price)
+                due_amount += amount
+                plan_list.append(f"{sub.plan.name} (₹{amount:.2f})")
 
             # Last successful payment
             last_payment = Payment.objects.filter(
                 customer=customer, status='success'
             ).order_by('-payment_date').first()
+
             last_payment_display = (
                 last_payment.payment_date.strftime('%d-%b-%Y')
                 if last_payment and last_payment.payment_date else 'N/A'
@@ -149,9 +223,9 @@ class CustomerDataMixin:
 
             # Payment status
             if Payment.objects.filter(
-                    customer=customer,
-                    payment_date__range=(start_of_month, end_of_month),
-                    status='success'
+                customer=customer,
+                payment_date__range=(start_of_month, end_of_month),
+                status='success'
             ).exists():
                 payment_status = "No Dues"
             else:
@@ -165,18 +239,18 @@ class CustomerDataMixin:
                 'status': customer.status,
                 'plan_details': plan_list,
                 'due_amount': f"{due_amount:.2f}",
-                'final_amount': f"{final_amount:.2f}",
+                'final_amount': f"{due_amount:.2f}",
                 'last_payment': last_payment,
                 'payment_status': payment_status,
-                'total_revised_amount': f"{total_revised_amount:.2f}",
+                'total_revised_amount': f"{due_amount:.2f}",
                 'qr_code_url': (
                     customer.qr_code.image.url
                     if hasattr(customer, 'qr_code') and customer.qr_code and customer.qr_code.image
                     else None
                 ),
             })
-        return customer_data
 
+        return customer_data
 
 class ExcelExportMixin:
     def export_as_excel(self, request, data, headers, filename='customers.xlsx'):
@@ -592,31 +666,33 @@ class UpdateCustomerView(LoginRequiredMixin, View):
             customer = form.save()
             base_plan = form.cleaned_data.get('base_plan')
             addon_plans = form.cleaned_data.get('add_on_plan')
-            revised_amount = form.cleaned_data.get('revised_amount') or 0
+            revised_amount_total = Decimal(form.cleaned_data.get('revised_amount') or 0)
             start_date = form.cleaned_data.get('start_date') or date.today()
+
+            # Collect all plans first
+            plans = []
+            if base_plan:
+                plans.append(base_plan)
+            if addon_plans:
+                plans.extend(addon_plans)
+
+            plan_count = len(plans)
+            revised_per_plan = (
+                (revised_amount_total / plan_count) if plan_count > 0 else Decimal("0.00")
+            )
 
             # Clear existing subscriptions
             Subscription.objects.filter(customer=customer).delete()
 
-            # Create new subscriptions
-            if base_plan:
+            # Create new subscriptions with split revised amount
+            for plan in plans:
                 Subscription.objects.create(
                     customer=customer,
-                    plan=base_plan,
+                    plan=plan,
                     start_date=start_date,
-                    end_date=start_date + timedelta(days=base_plan.duration_days),
-                    revised_amount=revised_amount
+                    end_date=start_date + timedelta(days=plan.duration_days),
+                    revised_amount=revised_per_plan
                 )
-
-            if addon_plans:
-                for addon_plan in addon_plans:
-                    Subscription.objects.create(
-                        customer=customer,
-                        plan=addon_plan,
-                        start_date=start_date,
-                        end_date=start_date + timedelta(days=addon_plan.duration_days),
-                        revised_amount=revised_amount
-                    )
 
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
@@ -635,6 +711,7 @@ class UpdateCustomerView(LoginRequiredMixin, View):
 
         messages.error(request, "Failed to update customer.")
         return redirect('dashboard:customer_list')
+
 
 class CustomerDetailView(LoginRequiredMixin, View):
     template_name = 'dashboard/Customer-Detail.html'
@@ -830,107 +907,82 @@ class RazorpayPaymentView(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class RazorpayVerifyPaymentView(View):
     def post(self, request):
+        import json
+        from decimal import Decimal
+        from dateutil.relativedelta import relativedelta
+
         try:
-            import json
-            from decimal import Decimal
-            from dateutil.relativedelta import relativedelta
+            data = json.loads(request.body.decode("utf-8"))
+        except json.JSONDecodeError:
+            return JsonResponse({"status": "fail", "message": "Invalid JSON"}, status=400)
 
-            # Parse request body
-            try:
-                data = json.loads(request.body.decode("utf-8"))
-            except json.JSONDecodeError as e:
-                return JsonResponse({"status": "fail", "message": "Invalid JSON data"}, status=400)
+        required_fields = ["razorpay_order_id", "customer_id"]
+        missing_fields = [f for f in required_fields if f not in data or not data[f]]
+        if missing_fields:
+            return JsonResponse({"status": "fail", "message": f"Missing fields: {', '.join(missing_fields)}"}, status=400)
 
-            # Validate required fields
-            required_fields = ["razorpay_order_id", "razorpay_payment_id", "razorpay_signature", "customer_id"]
-            missing_fields = [field for field in required_fields if field not in data or not data[field]]
+        # Get customer
+        try:
+            customer = Customer.objects.get(customer_id=data["customer_id"])
+        except Customer.DoesNotExist:
+            return JsonResponse({"status": "fail", "message": "Customer not found"}, status=404)
 
-            if missing_fields:
-                return JsonResponse({"status": "fail", "message": f"Missing fields: {', '.join(missing_fields)}"},
-                                    status=400)
+        # Get or create Payment record for this order
+        payment, created = Payment.objects.get_or_create(
+            razorpay_order_id=data["razorpay_order_id"],
+            defaults={
+                "customer": customer,
+                "amount": Decimal("0.00"),  # Will update later if needed
+                "status": "initiated",
+                "payment_method": "Razorpay"
+            }
+        )
 
-            # Initialize Razorpay client
-            client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        # If Razorpay payment ID is missing → Payment failed or abandoned
+        if not data.get("razorpay_payment_id") or not data.get("razorpay_signature"):
+            payment.status = "failed"
+            payment.notes = "Payment failed or cancelled by user"
+            payment.save(update_fields=["status", "notes", "updated_at"])
+            return JsonResponse({"status": "fail", "message": "Payment failed"}, status=400)
 
-            # Prepare verification data
-            verify_data = {
+        # Verify payment signature
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        try:
+            client.utility.verify_payment_signature({
                 "razorpay_order_id": data["razorpay_order_id"],
                 "razorpay_payment_id": data["razorpay_payment_id"],
                 "razorpay_signature": data["razorpay_signature"]
-            }
-
-            # Verify payment signature
-            try:
-                client.utility.verify_payment_signature(verify_data)
-            except Exception as verification_error:
-                return JsonResponse({"status": "fail", "message": "Payment signature verification failed"}, status=400)
-
-            # Get customer
-            try:
-                customer = Customer.objects.get(customer_id=data["customer_id"])
-            except Customer.DoesNotExist:
-                return JsonResponse({"status": "fail", "message": "Customer not found"}, status=404)
-
-            # Get active subscriptions and calculate amount
-            today = now().date()
-            active_subscriptions = customer.subscriptions.filter(end_date__gte=today)
-            amount = sum(Decimal(sub.plan.price) for sub in active_subscriptions)
-
-            # Check if payment already exists to prevent duplicates
-            existing_payment = Payment.objects.filter(
-                customer=customer,
-                upi_transaction_id=data["razorpay_payment_id"]
-            ).first()
-
-            if existing_payment:
-                return JsonResponse({
-                    "status": "success",
-                    "message": "Payment already processed",
-                    "payment_id": existing_payment.id,
-                    "amount": float(existing_payment.amount)
-                })
-
-            # Create payment record with all required fields
-            try:
-                payment = Payment.objects.create(
-                    customer=customer,
-                    amount=amount,
-                    payment_date=today,
-                    payment_for_month=today,
-                    payment_method="Razorpay",
-                    upi_transaction_id=data["razorpay_payment_id"],
-                    razorpay_order_id=data["razorpay_order_id"],
-                    razorpay_signature=data["razorpay_signature"],
-                    status="success",  # Mark as successful since verification passed
-                    notes=f"Payment for {active_subscriptions.count()} subscriptions"
-                )
-
-                # Link the payment to active subscriptions
-                payment.subscriptions.set(active_subscriptions)
-
-                # Calculate next due date (assuming monthly billing)
-                next_due_date = today + relativedelta(months=1)
-
-            except Exception as e:
-                return JsonResponse({"status": "fail", "message": f"Database error: {str(e)}"}, status=500)
-
-            return JsonResponse({
-                "status": "success",
-                "message": "Payment verified and recorded successfully",
-                "payment_id": payment.id,
-                "amount": float(amount),
-                "subscriptions_count": active_subscriptions.count(),
-                "next_due_date": next_due_date.strftime("%Y-%m-%d"),
-                "customer_id": customer.customer_id
             })
+        except Exception:
+            payment.status = "failed"
+            payment.notes = "Signature verification failed"
+            payment.save(update_fields=["status", "notes", "updated_at"])
+            return JsonResponse({"status": "fail", "message": "Verification failed"}, status=400)
 
-        except Exception as e:
-            import traceback
+        # At this point payment is successful
+        today = now().date()
+        active_subscriptions = customer.subscriptions.filter(end_date__gte=today)
+        amount = sum(Decimal(sub.plan.price) for sub in active_subscriptions)
 
-            return JsonResponse({
-                "status": "fail",
-                "message": f"Server error: {str(e)}"
-            }, status=500)
+        payment.amount = amount
+        payment.payment_date = today
+        payment.payment_for_month = today
+        payment.upi_transaction_id = data["razorpay_payment_id"]
+        payment.razorpay_signature = data["razorpay_signature"]
+        payment.status = "success"
+        payment.notes = f"Payment for {active_subscriptions.count()} subscriptions"
+        payment.save()
+
+        payment.subscriptions.set(active_subscriptions)
+        next_due_date = today + relativedelta(months=1)
+
+        return JsonResponse({
+            "status": "success",
+            "message": "Payment verified successfully",
+            "payment_id": payment.id,
+            "amount": float(amount),
+            "next_due_date": next_due_date.strftime("%Y-%m-%d")
+        })
 
 class PaymentReceiptView(View):
     def get(self, request, payment_id):
