@@ -520,15 +520,13 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
   }
 
   .footer-button {
-    position: fixed;
+    position: relative;
     bottom: 0;
     left: 0;
     width: 100%;
     padding: 10px;
-    z-index: 999;
   }
 }
-
 
 @media (max-width: 767px) {
   .login-banner-section {
