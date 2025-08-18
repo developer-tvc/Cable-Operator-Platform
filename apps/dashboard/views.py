@@ -850,7 +850,11 @@ class RazorpayPaymentView(View):
                     "plan": active_subscriptions.first().plan if active_subscriptions.exists() else None
                 })
 
-        due_amount = sum(sub.plan.price for sub in active_subscriptions)
+        # due_amount = sum(sub.plan.price for sub in active_subscriptions)
+        due_amount = sum(
+            sub.revised_amount if sub.revised_amount is not None else sub.plan.price
+            for sub in active_subscriptions
+        )
 
         # If no dues, redirect to No-Dues page
         if due_amount <= 0:
@@ -962,7 +966,11 @@ class RazorpayVerifyPaymentView(View):
         # At this point payment is successful
         today = now().date()
         active_subscriptions = customer.subscriptions.filter(end_date__gte=today)
-        amount = sum(Decimal(sub.plan.price) for sub in active_subscriptions)
+        # amount = sum(Decimal(sub.plan.price) for sub in active_subscriptions)
+        amount = sum(
+            Decimal(sub.revised_amount) if sub.revised_amount is not None else Decimal(sub.plan.price)
+            for sub in active_subscriptions
+        )
 
         payment.amount = amount
         payment.payment_date = today
