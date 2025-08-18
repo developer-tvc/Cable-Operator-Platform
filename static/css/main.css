@@ -5,7 +5,12 @@
   padding: 0px;
   margin: 0px;
 }
-
+.mobile-header{position:relative}
+.navbar-toggler {
+    position: absolute;
+    right: 0;
+    top: -7px;
+}
 .font-lg {
   font-size: 30px;
 }
@@ -68,8 +73,10 @@
   color: #08ae7f;
   padding: 8px;
   border-radius: 20px;
- font-size: 12px;
- font-weight: bold;
+  font-size: 11px;
+  display:flex;
+  align-items:center
+  font-weight: bold;
 }
 .inactive-badge {
   background-color: #fff2dd;
@@ -77,8 +84,13 @@
   color: #e4930f;
   border-radius: 20px;
   padding: 8px;
- font-size: 12px;
- font-weight: bold;
+  font-size: 11px;
+  display:flex;
+  align-items:center
+  font-weight: bold;
+}
+table.dataTable th.dt-type-numeric, table.dataTable th.dt-type-date, table.dataTable td.dt-type-numeric, table.dataTable td.dt-type-date {
+    text-align: left;
 }
 
 .pending-badge {
@@ -87,8 +99,10 @@
   color: #fe4d2e;
   border-radius: 20px;
   padding: 8px;
-font-size: 10px;
-font-weight: bold;  font-size: 12px;
+  font-weight: bold;
+  font-size: 11px;
+  display:flex;
+  align-items:center
 }
 
 .btn-success {
@@ -548,4 +562,14 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
   .filter-date-section {
     width: 100%;
   }
+}
+
+@media(max-width:540px){
+.filters-button-section{
+ flex-direction:column;
+}
+.export-btn{width:100%}
+.export-btn a{width:100%}
+.filter-icon{display:none!important;}
+.plan-status-type{width:100%!important;}
 }

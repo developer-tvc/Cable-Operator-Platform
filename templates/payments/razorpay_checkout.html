@@ -194,7 +194,6 @@
     });
 
 </script>
-
 <div style="text-align: center; padding: 20px; font-family: Arial, sans-serif;">
     <div style="max-width: 500px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
         <h3 style="color: #333; margin-bottom: 20px;">💳 Processing Payment</h3>
@@ -204,7 +203,15 @@
             <h4 style="color: #333; margin-bottom: 15px;">Payment Details:</h4>
             <div style="text-align: left;">
                 <p><strong>Customer:</strong> {{ customer.name }}</p>
-                <p><strong>Amount:</strong> ₹{{ display_amount }}</p>
+
+                {% for sub in active_subscriptions %}
+                    <p>
+                        <strong>Plan:</strong> {{ sub.plan.name }} <br>
+                        <strong>Amount:</strong> ₹{{ sub.revised_amount|default:sub.plan.price }}
+                    </p>
+                {% endfor %}
+
+                <p><strong>Total Amount:</strong> ₹{{ display_amount }}</p>
                 <p><strong>Order ID:</strong> {{ razorpay_order_id }}</p>
             </div>
         </div>
