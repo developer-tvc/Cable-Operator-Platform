@@ -67,6 +67,9 @@
   background-color: #0a84da;
   border: none;
 }
+.title{
+  font-size: 20px;
+}
 .active-badge {
   background-color: #e5fff3;
   border: 1px solid #08ae7f;
@@ -74,8 +77,8 @@
   padding: 8px;
   border-radius: 20px;
   font-size: 11px;
-  display:flex;
-  align-items:center
+  display:inline-flex;
+  align-items:center;
   font-weight: bold;
 }
 .inactive-badge {
@@ -85,12 +88,12 @@
   border-radius: 20px;
   padding: 8px;
   font-size: 11px;
-  display:flex;
+  display:inline-flex;
   align-items:center
   font-weight: bold;
 }
 table.dataTable th.dt-type-numeric, table.dataTable th.dt-type-date, table.dataTable td.dt-type-numeric, table.dataTable td.dt-type-date {
-    text-align: left;
+    text-align: left!important;
 }
 
 .pending-badge {
@@ -101,7 +104,7 @@ table.dataTable th.dt-type-numeric, table.dataTable th.dt-type-date, table.dataT
   padding: 8px;
   font-weight: bold;
   font-size: 11px;
-  display:flex;
+  display:inline-flex;
   align-items:center
 }
 
@@ -508,7 +511,6 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
   }
 }
 
-
 @media(min-width:1346px) and (max-width:1525px){
   .mobile-dashboard-font{
     font-size: 16px;
@@ -527,7 +529,7 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
   }
 
   .logo-font {
-    font-size: 16px;
+    font-size: 14px;
   }
   .success-payment-card {
     width: auto;
@@ -563,13 +565,18 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
     width: 100%;
   }
 }
-
 @media(max-width:540px){
+.mobile-customer-header{
+  width: 100%;
+}
+
+.mobile-customer-header .btn{
+  width: 100%;
+}
 .filters-button-section{
  flex-direction:column;
 }
-.export-btn{width:100%}
-.export-btn a{width:100%}
-.filter-icon{display:none!important;}
-.plan-status-type{width:100%!important;}
+.export-btn{width:100%!important;}
+.export-btn a{width:100%!important}
+.plan-status-type{width:100%!important}
 }
