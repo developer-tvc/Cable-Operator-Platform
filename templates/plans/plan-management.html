@@ -23,7 +23,7 @@
           <input type="text" name="search" placeholder="Search plans By Name" class="form-control search-box"
             value="{{ search }}">
         </form>
-        <div class="d-flex gap-2 align-items-center align-items-center">
+        <div class="d-flex gap-2 align-items-center filters-button-section">
           <div class="export-btn">
             <a href="?export=xlsx{% if status %}&status={{ status }}{% endif %}{% if type %}&type={{ type }}{% endif %}{% if search %}&search={{ search }}{% endif %}"
               class="btn btn-primary">
@@ -32,9 +32,9 @@
           </div>
 
           <div class="d-flex gap-2 align-items-center">
-            <i class="fa-solid fa-filter text-gray"></i>
+            <i class="fa-solid fa-filter text-gray filter-icon"></i>
             <form method="get" class="d-inline">
-              <select name="type" class="form-select bg-light-blue" onchange="this.form.submit()">
+              <select name="type" class="form-select bg-light-blue plan-status-type" onchange="this.form.submit()">
                 <option value="">Choose type</option>
                 <option value="base" {% if type == 'base' %}selected{% endif %}>Base Plan</option>
                 <option value="add_on" {% if type_filter == 'add_on' %}selected{% endif %}>Add-On Plan
@@ -44,7 +44,7 @@
           </div>
           <div>
             <form method="get" class="d-inline">
-              <select name="status" class="form-select bg-light-blue" onchange="this.form.submit()">
+              <select name="status" class="form-select bg-light-blue plan-status-type" onchange="this.form.submit()">
                 <option value="">Choose Status</option>
                 <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
                 <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive
