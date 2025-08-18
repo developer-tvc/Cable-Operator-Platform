@@ -7,9 +7,9 @@
 <!--Main Section-->
 <div class="container-fluid">
   <div class="table-section p-3">
-    <div class="d-flex justify-content-between mb-4 header-section">
+    <div class="d-flex justify-content-between mb-4 header-section flex-wrap">
       <h4 class="text-gray mb-3 title">Plan Management</h4>
-      <div>
+      <div class="mobile-customer-header">
         <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#createplan"><i
             class="fa-solid fa-user-plus"></i> Create Plan</button>
       </div>
@@ -31,8 +31,9 @@
             </a>
           </div>
 
-          <div class="d-flex gap-2 align-items-center">
-            <i class="fa-solid fa-filter text-gray filter-icon"></i>
+          <div class="d-flex gap-2 align-items-center plan-status-type">
+<!--            <i class="fa-solid fa-filter text-gray filter-icon"></i>-->
+            <div class="plan-status-type">
             <form method="get" class="d-inline">
               <select name="type" class="form-select bg-light-blue plan-status-type" onchange="this.form.submit()">
                 <option value="">Choose type</option>
@@ -41,8 +42,9 @@
                 </option>
               </select>
             </form>
+            </div>
           </div>
-          <div>
+          <div class="plan-status-type">
             <form method="get" class="d-inline">
               <select name="status" class="form-select bg-light-blue plan-status-type" onchange="this.form.submit()">
                 <option value="">Choose Status</option>
