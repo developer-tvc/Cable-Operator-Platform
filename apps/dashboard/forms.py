@@ -8,8 +8,8 @@ class CustomerForm(forms.ModelForm):
     base_plan = forms.ModelChoiceField(
         queryset=Plan.objects.filter(plan_type='base'),
         required=False,
-        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_base_plan', 'data-placeholder': 'Select Base Plans'})
-
+        empty_label="Select Base Plans",
+        widget=forms.Select(attrs={'class': 'form-select bg-light-blue', 'id': 'id_base_plan', 'data-placeholder': 'Select Base Plans'})
     )
 
     add_on_plan = forms.ModelMultipleChoiceField(

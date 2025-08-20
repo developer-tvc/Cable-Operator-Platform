@@ -149,7 +149,16 @@
                     N/A
                 {% endif %}
             </td>
-            <td><span class="text-red">₹{{ customer.final_amount }}</span></td>
+            <td>
+                {% if customer.payment_status == "No Dues" %}
+                    <span class="text-red">₹0</span>
+                {% elif customer.payment_status == "Due" %}
+                    <span class="text-red">₹{{ customer.final_amount }}</span>
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <!-- <td><span class="text-red">₹{{ customer.final_amount }}</span></td> -->
             <td>
               {% if customer.status == 'active' %}
               <span class="active-badge"><i class="fa-solid fa-check"></i> Active</span>
