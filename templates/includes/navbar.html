@@ -20,10 +20,11 @@
                         <a href="{% url 'dashboard:customer_list' %}" class="nav-link {% if request.path == '/dashboard/customers/' %}active-text{% endif %}" >Customer Management</a>
                     </li>
 
-
+                    {% if request.user.is_superuser %}
                     <li class="nav-item">
                         <a href="{% url 'plan:plan_management' %}" class="nav-link {% if request.path == '/plans/plans/' %}active-text{% endif %}">Plan Management</a>
                     </li>
+                    {% endif %}
 
 
                     <li class="nav-item">

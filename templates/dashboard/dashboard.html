@@ -143,11 +143,12 @@
             <td>
                 {% if customer.payment_status == "No Dues" %}
                     <span class="active-badge">No Dues</span>
-                {% elif customer.payment_status == "Due" %}
-                    <span class="pending-badge">Due</span>
+                {% elif customer.payment_status|slice:":3" == "Due" %}
+                    <span class="pending-badge">{{ customer.payment_status }}</span>
                 {% else %}
                     N/A
                 {% endif %}
+
             </td>
             <td>
                 {% if customer.payment_status == "No Dues" %}
