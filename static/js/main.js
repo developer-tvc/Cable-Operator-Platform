@@ -129,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function () {
           if (okBtn) {
             okBtn.addEventListener('click', function () {
               window.location.reload();
-            }, { once: true });  // ensure it fires only once
+            }, { once: true });
           }
 
         } else {
@@ -379,61 +379,9 @@ $('#editUser').on('shown.bs.modal', function () {
     $baseSel.off('.editPlan').on('change.editPlan', refreshEditPlanInfo);
     $addSel.off('.editPlan').on('change.editPlan select2:select.editPlan select2:unselect.editPlan', refreshEditPlanInfo);
 
-    // ✅ Call immediately on modal open so pre-selected add-ons are included
+    // Call immediately on modal open so pre-selected add-ons are included
     refreshEditPlanInfo();
 });
-
-
-
-//  /* ---------- EDIT CUSTOMER MODAL ---------- */
-//  $('#editUser').on('shown.bs.modal', function () {
-//    const $modal = $('#editUser');
-//    const $baseSel = $modal.find('#edit_base_plan');
-//    const $addSel = $modal.find('#edit_add_on_plan');
-//    const $dueAmt = $modal.find('#edit_due_amount');
-//    const $revisedAmt = $modal.find('#edit_revised_amount');
-//
-//    // Initialize Select2 for Add-on Plan
-//    $addSel.select2({
-//      dropdownParent: $modal,
-//      placeholder: 'Select Add‑on Plans',
-//      width: 'resolve',
-//      allowClear: true,
-//    });
-//
-//    // Refresh plan info
-//    function refreshEditPlanInfo() {
-//      const baseId = $baseSel.val() || '';
-//      const addonIds = $addSel.val() ? $addSel.val().join(',') : '';
-//
-//      if (!baseId) {
-//        $dueAmt.val('');
-//        $revisedAmt.val('');
-//        return;
-//      }
-//
-//      fetch(`/dashboard/customers/plan-info/?base_plan=${baseId}&add_on_plan=${addonIds}`)
-//        .then(response => response.json())
-//        .then(data => {
-//          const due = parseFloat(data.due_amount || 0);
-//          $dueAmt.val(due.toFixed(2));
-//
-//          // Only set revised if it's currently empty (so we don't overwrite server/user provided value)
-//          const revisedVal = ($revisedAmt.val() || '').toString().trim();
-//          if (!revisedVal) {
-//            $revisedAmt.val(due.toFixed(2));
-//          }
-//        })
-//        .catch(err => {
-//          console.error('Error fetching plan info for edit modal:', err);
-//        });
-//    }
-//
-//    // Bind change events (use namespaced handlers and remove previous handlers to avoid duplicates)
-//    $baseSel.off('.editPlan').on('change.editPlan', refreshEditPlanInfo);
-//    $addSel.off('.editPlan').on('change.editPlan select2:select.editPlan select2:unselect.editPlan', refreshEditPlanInfo);;
-//  });
-//
 
   /* ---------- SELECT2 INIT FOR EDIT MODAL ---------- */
   $('#editUser').on('shown.bs.modal', function () {
@@ -653,7 +601,7 @@ async function loadCustomerData(customerId) {
         }
       }
     }
-    $(addonSelect).trigger('change'); // so Select2 syncs with selected options
+    $(addonSelect).trigger('change');
 
     // Keep backend values, don't overwrite them
     document.getElementById('edit_due_amount').value = data.due_amount || '';
@@ -704,6 +652,12 @@ async function validateCustomerCreateForm(form, isEdit = false) {
   const basePlan = form.querySelector('[name="base_plan"]');
   const addOnPlan = form.querySelector('[name="add_on_plan"]');
   const startDateField = form.querySelector('[name="start_date"]');
+
+   // Amount fields
+  const dueAmountField = form.querySelector('[name="due_amount"]');
+  const revisedAmountField = form.querySelector('[name="revised_amount"]');
+  const dueAmount = parseFloat(dueAmountField?.value || 0);
+  const revisedAmount = parseFloat(revisedAmountField?.value || 0);
 
   if (!nameValue) {
     showError(nameField, "Customer name is required");
@@ -756,7 +710,14 @@ async function validateCustomerCreateForm(form, isEdit = false) {
     isValid = false;
   }
 
-  // 🔍 Skip duplicate check if editing
+  if (revisedAmountField && dueAmountField) {
+    if (revisedAmount > dueAmount) {
+      showError(revisedAmountField, "Revised amount cannot be greater than due amount");
+      isValid = false;
+    }
+  }
+
+  // Skip duplicate check if editing
   if (!isEdit && isValid) {
     try {
       const response = await fetch("/dashboard/customers/check-duplicates/", {
