@@ -16,7 +16,16 @@ import os
 from apps.accounts.models import Customer
 from reportlab.lib.units import inch
 from django.db.models import Count
+from django.contrib.auth.mixins import UserPassesTestMixin
 
+
+class SuperUserRequiredMixin(UserPassesTestMixin):
+    def test_func(self):
+        return self.request.user.is_superuser  # ✅ Only superadmin
+
+    def handle_no_permission(self):
+        messages.error(self.request, "You do not have permission to access this page.")
+        return redirect('admin_dashboard')
 
 # Mixins for filtering and exporting plans
 class PlanFilterMixin:
@@ -69,7 +78,7 @@ class PlanFilterMixin:
         return None
 
 # Views for Plan Management
-class PlanListView(PlanFilterMixin, ListView):
+class PlanListView(PlanFilterMixin,SuperUserRequiredMixin, ListView):
     model = Plan
     template_name = 'plans/plan-management.html'
     context_object_name = 'plans'
@@ -103,7 +112,7 @@ class PlanListView(PlanFilterMixin, ListView):
         return context
 
 # Views for creating, updating, and deleting plans
-class PlanCreateView(CreateView):
+class PlanCreateView(CreateView,SuperUserRequiredMixin):
     model = Plan
     form_class = PlanForm
     success_url = reverse_lazy('plan:plan_management')
@@ -122,7 +131,7 @@ class PlanCreateView(CreateView):
         return super().form_invalid(form)
 
 
-class PlanUpdateView(UpdateView):
+class PlanUpdateView(UpdateView,SuperUserRequiredMixin):
     model = Plan
     form_class = PlanForm
     success_url = reverse_lazy('plan:plan_management')

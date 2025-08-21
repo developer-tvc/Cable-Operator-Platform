@@ -31,7 +31,7 @@ class Payment(models.Model):
         ('Wallet', 'Wallet'),
         ('Cash', 'Cash'),
     ]
-
+    snapshot = models.JSONField(default=dict, blank=True, null=True)
     customer = models.ForeignKey('accounts.Customer', on_delete=models.CASCADE, related_name='payments')
     subscriptions = models.ManyToManyField('subscriptions.Subscription', related_name='payments', blank=True)
 

@@ -1,3 +1,4 @@
+from django.db import models
 from django.db.models import Count, Q, Prefetch, Sum
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
@@ -100,7 +101,7 @@ class CustomerSearchFilterMixin:
                c.latest_subscriptions[0].plan and
                c.latest_subscriptions[0].plan.plan_type == plan_type
         ]
-#
+
 # class CustomerDataMixin:
 #     def get_enriched_customer_data(self, customers):
 #         customer_data = []
@@ -117,39 +118,21 @@ class CustomerSearchFilterMixin:
 #
 #         for customer in customers:
 #             active_subs = customer.subscriptions.filter(is_active=True).select_related('plan')
-#             plan_count = active_subs.count()
 #
-#             total_revised_amount = Decimal("0.00")
-#             if active_subs.exists():
-#                 # If revised_amount is set in any subscription, assume it’s the total for all
-#                 first_revised = active_subs.first().revised_amount
-#                 if first_revised:
-#                     total_revised_amount = Decimal(first_revised or 0)
-#                 else:
-#                     # Otherwise sum prices normally
-#                     total_revised_amount = sum(Decimal(sub.revised_amount or 0) for sub in active_subs)
+#             due_amount = Decimal("0.00")
+#             plan_list = []
 #
-#             if total_revised_amount > 0 and plan_count > 0:
-#                 split_amount = (total_revised_amount / plan_count).quantize(Decimal("0.01"))
-#                 due_amount = Decimal("0.00")
-#                 plan_list = []
-#                 for sub in active_subs:
-#                     due_amount += split_amount
-#                     plan_list.append(f"{sub.plan.name} (₹{split_amount:.2f})")
-#             else:
-#                 due_amount = Decimal("0.00")
-#                 plan_list = []
-#                 for sub in active_subs:
-#                     amount = Decimal(sub.plan.price)
-#                     due_amount += amount
-#                     plan_list.append(f"{sub.plan.name} (₹{amount:.2f})")
-#
-#             final_amount = due_amount
+#             for sub in active_subs:
+#                 # Use revised amount if set, else use plan price
+#                 amount = Decimal(sub.revised_amount) if sub.revised_amount else Decimal(sub.plan.price)
+#                 due_amount += amount
+#                 plan_list.append(f"{sub.plan.name} (₹{amount:.2f})")
 #
 #             # Last successful payment
 #             last_payment = Payment.objects.filter(
 #                 customer=customer, status='success'
 #             ).order_by('-payment_date').first()
+#
 #             last_payment_display = (
 #                 last_payment.payment_date.strftime('%d-%b-%Y')
 #                 if last_payment and last_payment.payment_date else 'N/A'
@@ -157,9 +140,9 @@ class CustomerSearchFilterMixin:
 #
 #             # Payment status
 #             if Payment.objects.filter(
-#                     customer=customer,
-#                     payment_date__range=(start_of_month, end_of_month),
-#                     status='success'
+#                 customer=customer,
+#                 payment_date__range=(start_of_month, end_of_month),
+#                 status='success'
 #             ).exists():
 #                 payment_status = "No Dues"
 #             else:
@@ -173,43 +156,59 @@ class CustomerSearchFilterMixin:
 #                 'status': customer.status,
 #                 'plan_details': plan_list,
 #                 'due_amount': f"{due_amount:.2f}",
-#                 'final_amount': f"{final_amount:.2f}",
+#                 'final_amount': f"{due_amount:.2f}",
 #                 'last_payment': last_payment,
 #                 'payment_status': payment_status,
-#                 'total_revised_amount': f"{total_revised_amount:.2f}",
+#                 'total_revised_amount': f"{due_amount:.2f}",
 #                 'qr_code_url': (
 #                     customer.qr_code.image.url
 #                     if hasattr(customer, 'qr_code') and customer.qr_code and customer.qr_code.image
 #                     else None
 #                 ),
 #             })
+#
 #         return customer_data
+
+def calculate_due_and_status(customer):
+    today = timezone.now().date()
+    active_subs = customer.subscriptions.filter(is_active=True, end_date__gte=today)
+
+    current_due = sum([
+        sub.revised_amount if sub.revised_amount else sub.plan.price
+        for sub in active_subs
+    ], Decimal(0))
+
+    last_payment = customer.payments.filter(
+        payment_date__month=today.month,
+        payment_date__year=today.year,
+        status='success'
+    ).order_by('-payment_date').first()
+
+    paid_amount = last_payment.amount if last_payment else Decimal(0)
+    due_amount = max(current_due - paid_amount, Decimal(0))
+
+    payment_status = "No Dues" if due_amount == 0 else f"Due"
+
+    return {
+        "due_amount": due_amount,
+        "payment_status": payment_status
+    }
 
 class CustomerDataMixin:
     def get_enriched_customer_data(self, customers):
         customer_data = []
         today = timezone.now().date()
 
-        # First & last day of current month
-        month_start = date(today.year, today.month, 1)
-        last_day = monthrange(today.year, today.month)[1]
-        month_end = date(today.year, today.month, last_day)
-
-        # Aware datetimes
-        start_of_month = timezone.make_aware(dt.combine(month_start, dt.min.time()))
-        end_of_month = timezone.make_aware(dt.combine(month_end, dt.max.time()))
-
         for customer in customers:
             active_subs = customer.subscriptions.filter(is_active=True).select_related('plan')
 
-            due_amount = Decimal("0.00")
-            plan_list = []
+            # ✅ Use helper for due + payment status
+            due_info = calculate_due_and_status(customer)
 
-            for sub in active_subs:
-                # Use revised amount if set, else use plan price
-                amount = Decimal(sub.revised_amount) if sub.revised_amount else Decimal(sub.plan.price)
-                due_amount += amount
-                plan_list.append(f"{sub.plan.name} (₹{amount:.2f})")
+            plan_list = [
+                f"{sub.plan.name} (₹{sub.revised_amount if sub.revised_amount else sub.plan.price})"
+                for sub in active_subs
+            ]
 
             # Last successful payment
             last_payment = Payment.objects.filter(
@@ -221,16 +220,6 @@ class CustomerDataMixin:
                 if last_payment and last_payment.payment_date else 'N/A'
             )
 
-            # Payment status
-            if Payment.objects.filter(
-                customer=customer,
-                payment_date__range=(start_of_month, end_of_month),
-                status='success'
-            ).exists():
-                payment_status = "No Dues"
-            else:
-                payment_status = "Due"
-
             customer_data.append({
                 'id': customer.id,
                 'customer_id': customer.customer_id,
@@ -238,11 +227,14 @@ class CustomerDataMixin:
                 'mobile': customer.mobile,
                 'status': customer.status,
                 'plan_details': plan_list,
-                'due_amount': f"{due_amount:.2f}",
-                'final_amount': f"{due_amount:.2f}",
+
+                # ✅ Pull values from helper
+                'due_amount': f"{due_info['due_amount']:.2f}",
+                'final_amount': f"{due_info['due_amount']:.2f}",
+                'payment_status': due_info['payment_status'],
+                'total_revised_amount': f"{due_info['due_amount']:.2f}",
+
                 'last_payment': last_payment,
-                'payment_status': payment_status,
-                'total_revised_amount': f"{due_amount:.2f}",
                 'qr_code_url': (
                     customer.qr_code.image.url
                     if hasattr(customer, 'qr_code') and customer.qr_code and customer.qr_code.image
@@ -251,6 +243,7 @@ class CustomerDataMixin:
             })
 
         return customer_data
+
 
 class ExcelExportMixin:
     def export_as_excel(self, request, data, headers, filename='customers.xlsx'):
@@ -828,71 +821,69 @@ class CheckCustomerDuplicatesView(View):
             })
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
-
 class RazorpayPaymentView(View):
     def get(self, request, customer_id):
         customer = get_object_or_404(Customer, customer_id=customer_id)
         today = now().date()
         active_subscriptions = customer.subscriptions.filter(end_date__gte=today)
 
-        last_payment = Payment.objects.filter(customer=customer).order_by('-payment_date').first()
-
-        if last_payment:
-            payment_date = last_payment.payment_date.date()
-            next_due_date = payment_date + relativedelta(months=1)
-
-            if today < next_due_date:
-                return render(request, "payments/No-Dues.html", {
-                    "customer": customer,
-                    "payment": last_payment,
-                    "next_due_date": next_due_date,
-                    "payment_method": last_payment.payment_method,
-                    "plan": active_subscriptions.first().plan if active_subscriptions.exists() else None
-                })
-
-        # due_amount = sum(sub.plan.price for sub in active_subscriptions)
-        due_amount = sum(
+        # 1. Calculate total due for current cycle
+        cycle_due = sum(
             sub.revised_amount if sub.revised_amount is not None else sub.plan.price
             for sub in active_subscriptions
         )
 
-        # If no dues, redirect to No-Dues page
-        if due_amount <= 0:
+        # 2. Get total payments already made in this billing cycle
+        cycle_start = today.replace(day=1)   # first day of current month
+        cycle_end = (cycle_start + relativedelta(months=1)) - timedelta(days=1)
+
+        total_paid = Payment.objects.filter(
+            customer=customer,
+            payment_date__date__gte=cycle_start,
+            payment_date__date__lte=cycle_end,
+            status="success"
+        ).aggregate(total=models.Sum("amount"))["total"] or Decimal(0)
+
+        # 3. Remaining due
+        remaining_due = cycle_due - total_paid
+
+        # ✅ Round small floating point errors
+        if remaining_due < Decimal("0.01"):
+            remaining_due = Decimal("0.00")
+
+        if remaining_due <= 0:
+            # All dues cleared
             return render(request, "payments/No-Dues.html", {
                 "customer": customer,
                 "message": "You have no pending dues!"
             })
 
-        # Create Razorpay order
+        # 4. Proceed with Razorpay order for remaining due
         try:
             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
             order_data = {
-                "amount": int(due_amount * 100),  # in paise
+                "amount": int(remaining_due * 100),  # convert to paise
                 "currency": "INR",
-                "payment_capture": "1"  # Auto-capture payment
+                "payment_capture": "1"
             }
 
             payment_order = client.order.create(order_data)
-
-            # Verify the order was created properly
             if not payment_order.get("id"):
                 raise Exception("Failed to create Razorpay order")
-
 
         except Exception as e:
             return render(request, "payments/Unsuccesfull.html", {
                 "error": f"Payment system error: {str(e)}",
                 "customer": customer,
-                "display_amount": due_amount,
+                "display_amount": remaining_due,
                 "active_subscriptions": active_subscriptions
             })
 
-        # Pass to template
         context = {
             "razorpay_order_id": payment_order["id"],
-            "amount_paise": int(due_amount * 100),
-            "display_amount": due_amount,
+            "amount_paise": int(remaining_due * 100),
+            "display_amount": remaining_due,
             "razorpay_key_id": settings.RAZORPAY_KEY_ID,
             "customer": customer,
             "customer_id": customer.customer_id,
@@ -900,13 +891,85 @@ class RazorpayPaymentView(View):
             "active_subscriptions": active_subscriptions,
         }
 
-        for key, value in context.items():
-            if key == "razorpay_key_id":
-                print(f"{key}: {str(value)[:10]}...")
-            else:
-                print(f"{key}: {value}")
-
         return render(request, "payments/razorpay_checkout.html", context)
+
+# class RazorpayPaymentView(View):
+#     def get(self, request, customer_id):
+#         customer = get_object_or_404(Customer, customer_id=customer_id)
+#         today = now().date()
+#         active_subscriptions = customer.subscriptions.filter(end_date__gte=today)
+#         last_payment = Payment.objects.filter(customer=customer).order_by('-payment_date').first()
+#
+#         if last_payment:
+#             payment_date = last_payment.payment_date.date()
+#             next_due_date = payment_date + relativedelta(months=1)
+#
+#             if today < next_due_date:
+#                 return render(request, "payments/No-Dues.html", {
+#                     "customer": customer,
+#                     "payment": last_payment,
+#                     "next_due_date": next_due_date,
+#                     "payment_method": last_payment.payment_method,
+#                     "plan": active_subscriptions.first().plan if active_subscriptions.exists() else None
+#                 })
+#
+#         # due_amount = sum(sub.plan.price for sub in active_subscriptions)
+#         due_amount = sum(
+#             sub.revised_amount if sub.revised_amount is not None else sub.plan.price
+#             for sub in active_subscriptions
+#         )
+#
+#         # If no dues, redirect to No-Dues page
+#         if due_amount <= 0:
+#             return render(request, "payments/No-Dues.html", {
+#                 "customer": customer,
+#                 "message": "You have no pending dues!"
+#             })
+#
+#         # Create Razorpay order
+#         try:
+#             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+#
+#             order_data = {
+#                 "amount": int(due_amount * 100),  # in paise
+#                 "currency": "INR",
+#                 "payment_capture": "1"  # Auto-capture payment
+#             }
+#
+#             payment_order = client.order.create(order_data)
+#
+#             # Verify the order was created properly
+#             if not payment_order.get("id"):
+#                 raise Exception("Failed to create Razorpay order")
+#
+#
+#         except Exception as e:
+#             return render(request, "payments/Unsuccesfull.html", {
+#                 "error": f"Payment system error: {str(e)}",
+#                 "customer": customer,
+#                 "display_amount": due_amount,
+#                 "active_subscriptions": active_subscriptions
+#             })
+#
+#         # Pass to template
+#         context = {
+#             "razorpay_order_id": payment_order["id"],
+#             "amount_paise": int(due_amount * 100),
+#             "display_amount": due_amount,
+#             "razorpay_key_id": settings.RAZORPAY_KEY_ID,
+#             "customer": customer,
+#             "customer_id": customer.customer_id,
+#             "callback_url": request.build_absolute_uri(reverse("dashboard:razorpay-verify")),
+#             "active_subscriptions": active_subscriptions,
+#         }
+#
+#         for key, value in context.items():
+#             if key == "razorpay_key_id":
+#                 print(f"{key}: {str(value)[:10]}...")
+#             else:
+#                 print(f"{key}: {value}")
+#
+#         return render(request, "payments/razorpay_checkout.html", context)
 
 @method_decorator(csrf_exempt, name='dispatch')
 class RazorpayVerifyPaymentView(View):
@@ -971,6 +1034,17 @@ class RazorpayVerifyPaymentView(View):
             Decimal(sub.revised_amount) if sub.revised_amount is not None else Decimal(sub.plan.price)
             for sub in active_subscriptions
         )
+        # Build subscription snapshot
+        subscription_snapshot = []
+        for sub in active_subscriptions:
+            subscription_snapshot.append({
+                "plan_id": sub.plan.id,
+                "plan_name": sub.plan.name,
+                "original_price": str(sub.plan.price),
+                "revised_amount": str(sub.revised_amount) if sub.revised_amount else None,
+                "start_date": sub.start_date.strftime("%Y-%m-%d"),
+                "end_date": sub.end_date.strftime("%Y-%m-%d"),
+            })
 
         payment.amount = amount
         payment.payment_date = today
@@ -979,6 +1053,7 @@ class RazorpayVerifyPaymentView(View):
         payment.razorpay_signature = data["razorpay_signature"]
         payment.status = "success"
         payment.notes = f"Payment for {active_subscriptions.count()} subscriptions"
+        payment.snapshot = subscription_snapshot
         payment.save()
 
         payment.subscriptions.set(active_subscriptions)
