@@ -72,10 +72,36 @@
                 </div>
 
                 <div class="footer-button w-100 mb-3">
-                    <a href="{% url 'dashboard:payment-receipt-download' payment.id %}" class="btn btn-success w-100">
+                    <a id="download-receipt-btn" href="#" class="btn btn-success w-100">
                         <i class="fa-solid fa-download"></i> Download Receipt
                     </a>
                 </div>
+
+                <script>
+                    // Example: after Razorpay payment success
+                    function handleRazorpaySuccess(response) {
+                        // response contains your JSON from RazorpayVerifyPaymentView
+                        fetch('/verify-payment/', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                customer_id: "{{ customer.customer_id }}"
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.status === "success") {
+                                const receiptBtn = document.getElementById('download-receipt-btn');
+                                // Dynamically set receipt download link
+                                receiptBtn.href = `/dashboard/receipt/${data.payment_id}/download/`;
+                            } else {
+                                alert(data.message);
+                            }
+                        });
+                    }
+                </script>
+
             </div>
         </div>
 
