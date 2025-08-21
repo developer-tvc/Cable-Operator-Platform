@@ -89,7 +89,7 @@
   padding: 8px;
   font-size: 11px;
   display:inline-flex;
-  align-items:center
+  align-items:center;
   font-weight: bold;
 }
 table.dataTable th.dt-type-numeric, table.dataTable th.dt-type-date, table.dataTable td.dt-type-numeric, table.dataTable td.dt-type-date {
@@ -375,11 +375,12 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
 
 .payment-success-body {
   background-color: #ddfff5;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
-  align-items: center;
   flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  overflow-y: auto;    
 }
 
 .success-payment-card {
@@ -387,7 +388,6 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
   border-radius: 20px;
   padding: 24px;
   display: flex;
-  justify-content: center;
   flex-direction: column;
   color: #fff;
   text-align: center;
@@ -399,16 +399,16 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
 }
 
 .animated-pay-circle {
-  position: absolute;
-  top: -50px;
+  /* position: absolute;
+  top: -50px; */
   padding: 20px;
   height: 100px;
   border-radius: 100px;
   background-color: #fff;
   width: 100px;
   height: 100px;
-  left: 0px;
-  right: 0px;
+  /* left: 0px;
+  right: 0px; */
   margin: 0 auto;
 }
 .success-content {
@@ -422,13 +422,13 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
 
 /****No Dues Page*****/
 .no-dues {
-  height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  overflow-y:scroll;
-  padding-top: 32px;
+  padding: 24px;
+  min-height: 100vh;
+  margin-top: 10px;
 }
 .no-due-container {
   display: flex;
@@ -439,8 +439,8 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
   width: 90%;
   border-bottom: 1px solid #dddddd;
   margin-bottom: 24px;
-  margin-top: 24px;
   padding-bottom: 16px;
+  /* height: auto */
 }
 .Unsuccesfull-container {
   display: flex;
@@ -451,7 +451,7 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
   width: 90%;
   border-bottom: 1px solid #dddddd;
   margin-bottom: 24px;
-  margin-top: 250px;
+  margin-top: 25px;
   padding-bottom: 16px;
 }
 .no-due-footer-container {
@@ -460,17 +460,29 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
   justify-content: start;
   align-items: flex-start;
   max-width: 500px;
-  width: 98%;
+  width: 90%;
 }
 
 .no-due-header-img {
-  width: 150px;
-  height: 150px;
+  width: 100px;
+  height: 100px;
+  margin-bottom: 30px;
+}
+
+.unsuccessful-header-img {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 18px;
 }
 
 .no-due-header-img img {
-  width: 150px;
+  width: 100px;
 }
+
+.unsuccessful-header-img img {
+  width: 64px;
+}
+
 .no-dues-content {
   margin-bottom: 16px;
 }
@@ -500,6 +512,15 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
   padding: 16px;
   width: 100%;
   margin-bottom: 32px;
+}
+
+.go-back-btn{
+  border-radius: 40px;
+}
+
+.success-img-confetti{
+  width: 250px;
+  height: 250px;
 }
 
 /****Media Query*****/
@@ -535,13 +556,13 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
     width: auto;
   }
 
-  .footer-button {
+  /* .footer-button {
     position: relative;
     bottom: 0;
     left: 0;
     width: 100%;
     padding: 10px;
-  }
+  } */
 }
 
 @media (max-width: 767px) {

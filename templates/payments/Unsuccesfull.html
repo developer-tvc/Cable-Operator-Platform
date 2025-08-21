@@ -5,7 +5,7 @@
     <div class="Unsuccesfull-container">
 
         <!-- Header Image -->
-        <div class="no-due-header-img">
+        <div class="unsuccessful-header-img">
             <img src="{% static 'Image/Unsuccesfull.png' %}" alt="Payment Failed" class="img-fluid mb-3">
         </div>
 
@@ -127,7 +127,7 @@
                    {% if display_amount %}<span class="text-small">₹{{ display_amount }}</span>{% endif %}
                 </a>
             {% else %}
-                <a href="{% url 'dashboard:customer_list' %}" class="btn btn-primary w-100">
+                <a href="{% url 'dashboard:customer_list' %}" class="btn btn-danger w-100">
                     <i class="fa-solid fa-arrow-left"></i>
                     <span class="fw-bold">Back to Dashboard</span>
                 </a>
