@@ -183,45 +183,30 @@
               </button>
             </td>
           </tr>
-          <div class="modal fade" id="QRCodeModal{{ customer.id }}" tabindex="-1" aria-labelledby="QRCodeModalLabel{{ customer.id }}" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-              <div class="modal-content text-center">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="QRCodeModalLabel{{ customer.id }}">QR Code for {{ customer.name }}</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                  {% if customer.qr_code_url %}
-                    <img src="{{ customer.qr_code_url }}" alt="QR Code" class="img-fluid qr-img">
-                  {% else %}
-                    <p class="text-muted">QR Code not available</p>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="modal fade" id="QRCodeModal{{ customer.id }}" tabindex="-1" aria-labelledby="QRCodeModalLabel{{ customer.id }}" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-              <div class="modal-content text-center">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="QRCodeModalLabel{{ customer.id }}">QR Code for {{ customer.name }}</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                  {% if customer.qr_code and customer.qr_code.image %}
-                  <img src="{{ customer.qr_code.image.url }}" alt class="img-fluid qr-img">
-                  {% else %}
-                  <p class="text-muted">QR Code not available</p>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-          </div>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
+  {% for customer in customers %}
+  <div class="modal fade" id="QRCodeModal{{ customer.id }}" tabindex="-1" aria-labelledby="QRCodeModalLabel{{ customer.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content text-center">
+        <div class="modal-header">
+          <h5 class="modal-title" id="QRCodeModalLabel{{ customer.id }}">QR Code for {{ customer.name }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          {% if customer.qr_code_url %}
+            <img src="{{ customer.qr_code_url }}" alt="QR Code" class="img-fluid qr-img">
+          {% else %}
+            <p class="text-muted">QR Code not available</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
 
   <!--Customer List Table End-->
 
