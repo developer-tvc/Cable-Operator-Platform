@@ -111,12 +111,18 @@
                                     <!-- Base Plan -->
                                     <div class="col-md-6 col-12">
                                         <div class="form-group mb-3">
-                                            <label for="{{ form.base_plan.id_for_label }}"
-                                                class="form-label mb-3">Select Base Plan</label>
-                                            {{ form.base_plan }}
+                                            <label for="{{ form.base_plan.id_for_label }}" class="form-label mb-3">Select Base Plan</label>
+
+                                            {% if form.base_plan.field.queryset.exists %}
+                                                {{ form.base_plan }}
+                                            {% else %}
+                                                <select class="form-select bg-light-blue" disabled>
+                                                    <option selected>No result found</option>
+                                                </select>
+                                            {% endif %}
                                         </div>
                                     </div>
-
+                                
                                     <!-- Add-on Plans -->
                                     <div class="col-md-6 col-12">
                                         <div class="form-group mb-3">

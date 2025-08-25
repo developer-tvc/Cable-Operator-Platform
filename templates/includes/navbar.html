@@ -1,37 +1,48 @@
 {% load static %}
 <nav class="navbar navbar-expand-lg bg-white p-3 mb-3 fixed-top">
-        <div class="container-fluid mobile-header">
-            <div>
-                <a href="http://" class="text-black navbar-brand fw-bold text-decoration-none logo-font">Cable Operators
-                    - Admin Panel</a>
-<!--                <p class="text-secondary mb-0">Monitor and manage your cable network operations</p>-->
-            </div>
-
-            <button type="button" class="navbar-toggler ms-auto" data-bs-toggle="collapse" data-bs-target="#navbar">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbar">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a href="{% url 'dashboard:admin_dashboard' %}" class="nav-link {% if request.path == '/dashboard/admin/' %}active-text{% endif %}">Dashboard</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a href="{% url 'dashboard:customer_list' %}" class="nav-link {% if request.path == '/dashboard/customers/' %}active-text{% endif %}" >Customer Management</a>
-                    </li>
-
-                    {% if request.user.is_superuser %}
-                    <li class="nav-item">
-                        <a href="{% url 'plan:plan_management' %}" class="nav-link {% if request.path == '/plans/plans/' %}active-text{% endif %}">Plan Management</a>
-                    </li>
-                    {% endif %}
-
-
-                    <li class="nav-item">
-                        <a href="{% url 'dashboard:logout' %}" class="nav-link "><i class="fa-solid fa-arrow-right-from-bracket"></i>
-                            Logout</a>
-                    </li>
-                </ul>
-            </div>
+    <div class="container-fluid mobile-header">
+        <div>
+            <a href="http://" class="text-black navbar-brand fw-bold text-decoration-none logo-font">
+                Cable Operators -
+                {% if request.user.is_superuser %}
+                Admin Panel
+                {% else %}
+                Manager Panel
+                {% endif %}
+            </a>
         </div>
-    </nav>
+
+        <button type="button" class="navbar-toggler ms-auto" data-bs-toggle="collapse" data-bs-target="#navbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbar">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a href="{% url 'dashboard:admin_dashboard' %}"
+                        class="nav-link {% if request.path == '/dashboard/' %}active-text{% endif %}">Dashboard</a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{% url 'dashboard:customer_list' %}"
+                        class="nav-link {% if request.path == '/dashboard/customers/' %}active-text{% endif %}">Customer
+                        Management</a>
+                </li>
+
+                {% if request.user.is_superuser %}
+                <li class="nav-item">
+                    <a href="{% url 'plan:plan_management' %}"
+                        class="nav-link {% if request.path == '/plans/plans/' %}active-text{% endif %}">Plan
+                        Management</a>
+                </li>
+                {% endif %}
+
+
+                <li class="nav-item">
+                    <a href="{% url 'dashboard:logout' %}" class="nav-link "><i
+                            class="fa-solid fa-arrow-right-from-bracket"></i>
+                        Logout</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
