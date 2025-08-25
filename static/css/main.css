@@ -601,3 +601,17 @@ table.dataTable > tbody > tr > th, table.dataTable > tbody > tr > td {
 .export-btn a{width:100%!important}
 .plan-status-type{width:100%!important}
 }
+
+.modal-backdrop {
+  z-index: 1050;
+}
+.modal {
+  z-index: 1060;
+}
+
+@supports (-webkit-touch-callout: none) {
+  body.modal-open {
+    position: fixed;
+    width: 100%;
+  }
+}
