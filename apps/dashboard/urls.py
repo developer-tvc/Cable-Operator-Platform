@@ -28,9 +28,11 @@ urlpatterns = [
     path("payments/success/", views.PaymentSuccessView.as_view(), name="payment_success_page"),
     path("payments/failed/", views.PaymentFailedView.as_view(), name="payment_failed_page"),
 
-    # Alternative URLs if needed
     path("payments/no-dues/", TemplateView.as_view(template_name="payments/No-Dues.html"), name="no_dues_page"),
 
     path("receipt/<int:payment_id>/", PaymentReceiptView.as_view(), name="payment-receipt"),
     path("receipt/<int:payment_id>/download/", PaymentReceiptPDFView.as_view(), name="payment-receipt-download"),
+
+    path("manual/<int:customer_id>/", views.add_manual_payment, name="add_manual_payment"),
+
 ]

@@ -160,13 +160,22 @@
                 {% endif %}
             </td>
             <!-- <td><span class="text-red">₹{{ customer.final_amount }}</span></td> -->
-            <td>
-              {% if customer.status == 'active' %}
-              <span class="active-badge"><i class="fa-solid fa-check"></i> Active</span>
-              {% else %}
-              <span class="pending-badge"><i class="fa-solid fa-ban"></i> Inactive</span>
-              {% endif %}
+<!--            <td>-->
+<!--              {% if customer.status == 'active' %}-->
+<!--              <span class="active-badge"><i class="fa-solid fa-check"></i> Active</span>-->
+<!--              {% else %}-->
+<!--              <span class="pending-badge"><i class="fa-solid fa-ban"></i> Inactive</span>-->
+<!--              {% endif %}-->
+<!--            </td>-->
+           <td>
+                <button type="button"
+                        class="btn btn-primary"
+                        data-bs-target="#paymentAdd{{ customer.id }}"
+                        data-bs-toggle="modal">
+                    Add Payment Info
+                </button>
             </td>
+
             <td>
               {% if customer.last_payment %}
                 {{ customer.last_payment.payment_date|date:"M j, Y" }}
@@ -207,6 +216,45 @@
     </div>
   </div>
   {% endfor %}
+
+  {% for customer in customers %}
+  <div id="paymentAdd{{ customer.id }}" class="modal fade" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h4 class="modal-title">Customer Payment Info</h4>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+
+              <div class="modal-body">
+                  <form action="{% url 'dashboard:add_manual_payment' customer.id %}" method="post">
+                      {% csrf_token %}
+                      <div class="row">
+                          <div class="col-sm-6">
+                              <div class="form-group mb-3">
+                                  <label class="form-label mb-3">Amount</label>
+                                  <input type="number" class="form-control bg-light-blue" name="amount" required>
+                              </div>
+                          </div>
+                          <div class="col-sm-6">
+                              <div class="form-group mb-3">
+                                  <label class="form-label mb-3">Date</label>
+                                  <input type="date" class="form-control bg-light-blue" name="date" required>
+                              </div>
+                          </div>
+                      </div>
+
+                      <div class="d-flex justify-content-end">
+                          <button type="submit" class="btn btn-primary">Add Info</button>
+                      </div>
+                  </form>
+              </div>
+          </div>
+      </div>
+  </div>
+{% endfor %}
+
+
 
   <!--Customer List Table End-->
 

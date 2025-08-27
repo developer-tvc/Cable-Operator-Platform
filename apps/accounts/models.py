@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from apps.plans.models import Plan
+from datetime import date
 
 class AdminUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
