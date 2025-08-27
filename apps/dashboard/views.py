@@ -1210,29 +1210,38 @@ class PaymentFailedView(View):
                 pass
         return render(request, 'payments/Unsuccesfull.html', context)
 
-
 def add_manual_payment(request, customer_id):
     if request.method == "POST":
         customer = get_object_or_404(Customer, id=customer_id)
-        amount = request.POST.get("amount")
+        amount_str = request.POST.get("amount")
         date_str = request.POST.get("date")  # comes from your form
 
+        # ✅ Validate amount
         try:
-            # Convert posted date (e.g., "2025-08-27") into python date
-            from datetime import datetime
+            amount = Decimal(amount_str)
+            if amount <= 0:
+                messages.error(request, "Amount must be greater than zero.")
+                return redirect("dashboard:admin_dashboard")
+        except Exception:
+            messages.error(request, "Invalid amount entered.")
+            return redirect("dashboard:admin_dashboard")
+
+        # ✅ Parse date
+        try:
             payment_date = datetime.strptime(date_str, "%Y-%m-%d").date()
         except Exception:
             payment_date = date.today()
 
+        # ✅ Save Payment
         Payment.objects.create(
             customer=customer,
             amount=amount,
             payment_method="Cash",
-            status="success",  # ✅ important
-            payment_for_month=payment_date.replace(day=1)  # ✅ first day of that month
+            status="success",
+            payment_for_month=payment_date.replace(day=1)  # first day of that month
         )
 
-        messages.success(request, f"Payment added for {customer.name}.")
+        messages.success(request, f"Payment of {amount} added for {customer.name}.")
         return redirect("dashboard:admin_dashboard")
 
     messages.error(request, "Invalid request")

@@ -454,6 +454,34 @@ $('#editUser').on('shown.bs.modal', function () {
       formToSubmit = null;
     }
   });
+  /*Validate negative amount*/
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".manual-payment-form").forEach(function (form) {
+        const amountInput = form.querySelector(".amount-input");
+        const errorMsg = form.querySelector(".amount-error");
+
+        form.addEventListener("submit", function (event) {
+            const value = parseFloat(amountInput.value);
+
+            if (isNaN(value) || value <= 0) {
+                event.preventDefault(); // stop form submission
+                errorMsg.classList.remove("d-none");
+            } else {
+                errorMsg.classList.add("d-none");
+            }
+        });
+
+        // also validate while typing
+        amountInput.addEventListener("input", function () {
+            if (parseFloat(this.value) <= 0) {
+                this.value = ""; // clear invalid value
+                errorMsg.classList.remove("d-none");
+            } else {
+                errorMsg.classList.add("d-none");
+            }
+        });
+    });
+});
   /* ---------- EDIT CUSTOMER FORM SUBMIT ---------- */
   const editForm = document.getElementById('editCustomerForm');
   if (editForm) {
